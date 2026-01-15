@@ -1,0 +1,57 @@
+class {{PluginName}}HookListener < Redmine::Hook::ViewListener
+  # ビューフック: パーシャルをレンダリング
+  # render_on :view_issues_show_details_bottom,
+  #           partial: 'issues/{{plugin_name}}_details'
+  
+  # render_on :view_projects_show_left,
+  #           partial: 'projects/{{plugin_name}}_info'
+
+  # ビューフック: HTMLを直接返す
+  # def view_issues_show_details_bottom(context = {})
+  #   issue = context[:issue]
+  #   project = context[:project]
+  #   
+  #   return '' unless project.module_enabled?(:{{module_name}})
+  #   
+  #   content_tag(:div, class: '{{plugin_name}}-info') do
+  #     # カスタムコンテンツ
+  #   end
+  # end
+
+  # レイアウトフック: CSSとJavaScriptの読み込み
+  def view_layouts_base_html_head(context = {})
+    tags = []
+    tags << stylesheet_link_tag('{{plugin_name}}', plugin: '{{plugin_name}}')
+    tags << javascript_include_tag('{{plugin_name}}', plugin: '{{plugin_name}}')
+    tags.join("\n").html_safe
+  end
+
+  # プロジェクト概要への表示
+  # def view_projects_show_left(context = {})
+  #   project = context[:project]
+  #   controller = context[:controller]
+  #   
+  #   return '' unless project.module_enabled?(:{{module_name}})
+  #   
+  #   controller.send(:render_to_string, {
+  #     partial: 'projects/{{plugin_name}}_overview',
+  #     locals: { project: project }
+  #   })
+  # end
+
+  # コントローラーフック: チケット保存前
+  # def controller_issues_new_before_save(context = {})
+  #   issue = context[:issue]
+  #   params = context[:params]
+  #   
+  #   # カスタム処理
+  # end
+
+  # コントローラーフック: チケット保存後
+  # def controller_issues_edit_after_save(context = {})
+  #   issue = context[:issue]
+  #   journal = context[:journal]
+  #   
+  #   # カスタム処理
+  # end
+end

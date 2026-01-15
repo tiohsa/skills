@@ -1,0 +1,68 @@
+class {{ControllerName}}Controller < ApplicationController
+  # ログイン必須（オプション）
+  # before_action :require_login
+  
+  # プロジェクトと権限チェック
+  before_action :find_project, :authorize, only: [:index, :show, :new, :create, :edit, :update, :destroy]
+  before_action :find_{{model_name}}, only: [:show, :edit, :update, :destroy]
+
+  def index
+    @{{model_name_plural}} = @project.{{model_name_plural}}.order(created_at: :desc)
+  end
+
+  def show
+  end
+
+  def new
+    @{{model_name}} = {{ModelName}}.new
+  end
+
+  def create
+    @{{model_name}} = {{ModelName}}.new({{model_name}}_params)
+    @{{model_name}}.project = @project
+    @{{model_name}}.author = User.current
+
+    if @{{model_name}}.save
+      flash[:notice] = l(:notice_{{model_name}}_created)
+      redirect_to project_{{model_name_plural}}_path(@project)
+    else
+      render :new
+    end
+  end
+
+  def edit
+  end
+
+  def update
+    if @{{model_name}}.update({{model_name}}_params)
+      flash[:notice] = l(:notice_{{model_name}}_updated)
+      redirect_to project_{{model_name}}_path(@project, @{{model_name}})
+    else
+      render :edit
+    end
+  end
+
+  def destroy
+    @{{model_name}}.destroy
+    flash[:notice] = l(:notice_{{model_name}}_deleted)
+    redirect_to project_{{model_name_plural}}_path(@project)
+  end
+
+  private
+
+  def find_project
+    @project = Project.find(params[:project_id])
+  rescue ActiveRecord::RecordNotFound
+    render_404
+  end
+
+  def find_{{model_name}}
+    @{{model_name}} = {{ModelName}}.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render_404
+  end
+
+  def {{model_name}}_params
+    params.require(:{{model_name}}).permit(:name, :description)
+  end
+end
