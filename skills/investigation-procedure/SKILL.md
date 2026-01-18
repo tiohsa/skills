@@ -130,6 +130,52 @@ Claude: 「"システムが遅い" について確認させてください。
 - **判断基準**: 正常/異常の判断基準を記載
 - **分岐**: 結果に応じた次のアクションを記載
 
+### 図の描画形式
+
+システム構成図やフローチャートは **Mermaid形式** で記述する。
+
+#### システム構成図の例
+
+```mermaid
+flowchart LR
+    Client[クライアントPC] --> LB[ロードバランサ]
+    LB --> Web1[Webサーバ1]
+    LB --> Web2[Webサーバ2]
+    Web1 --> DB[(データベース)]
+    Web2 --> DB
+```
+
+#### 調査フローの例
+
+```mermaid
+flowchart TD
+    A[事象確認] --> B{再現する?}
+    B -->|Yes| C[ログ確認]
+    B -->|No| D[再現条件の特定]
+    D --> B
+    C --> E{原因特定?}
+    E -->|Yes| F[対策実施]
+    E -->|No| G[追加調査]
+    G --> C
+```
+
+#### シーケンス図の例
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant N as nginx
+    participant A as API Server
+    participant D as Database
+    
+    C->>N: リクエスト
+    N->>A: 転送
+    A->>D: クエリ
+    D-->>A: 結果
+    A-->>N: レスポンス
+    N-->>C: レスポンス
+```
+
 ## ベストプラクティス
 
 ### 調査の心構え
