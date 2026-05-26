@@ -1,0 +1,20 @@
+{
+  "skill_name": "implementation-decision-log",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "仕様書 docs/specs/user-settings.md の通りに設定画面を実装して。仕様に書いてない判断や妥協点は全部ファイルに残しておいて。",
+      "expected_output": "Creates a Markdown decision log under docs/implementation-decisions before code edits, records spec gaps and implementation decisions as entries, and reports the log path."
+    },
+    {
+      "id": 2,
+      "prompt": "昨日作った docs/planning/2026-05-21-search-refactor.md の計画通りに実装して。途中で計画から変えたところ、判断したところ、検証できなかったところはレビューできるようにMarkdownで残して。",
+      "expected_output": "Uses the planning document as the source, creates or updates a decision log, records deviations from the plan and validation limits, then summarizes important recorded decisions."
+    },
+    {
+      "id": 3,
+      "prompt": "このIssueの要件に沿ってAPIのエラーハンドリングを直して。要件に明記がないデフォルトや既存仕様との兼ね合いで決めたことは、後から見返せるようにログ化して。",
+      "expected_output": "Treats the issue or prompt as the source document, logs defaults, compatibility decisions, tradeoffs, and any user-review-needed deviations in a Markdown file."
+    }
+  ]
+}
