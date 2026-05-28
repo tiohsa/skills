@@ -13,7 +13,7 @@ At a high level, the process of creating a skill goes like this:
 - Write a draft of the skill
 - Create a few test prompts and run an agent with access to the skill on them
 - Help the user evaluate the results both qualitatively and quantitatively
-  - Keep test prompts, assertions, and run artifacts outside the skill folder, usually in a sibling `<skill-name>-workspace/` directory. The skill folder should contain only `SKILL.md` and bundled resources that are needed for future use.
+  - Keep evaluation cases and run artifacts outside the skill folder under the repository-level `evals/<skill-name>/` directory. The skill folder should contain only `SKILL.md` and bundled resources that are needed for future use.
   - While the runs happen in the background, draft quantitative assertions if useful. Then explain them to the user.
   - Use the `eval-viewer/generate_review.py` script to show the user the results for them to look at, and also let them look at the quantitative metrics
 - Rewrite the skill based on feedback from the user's evaluation of the results (and also if there are any glaring flaws that become apparent from the quantitative benchmarks)
@@ -147,27 +147,46 @@ Try to explain to the model why things are important in lieu of heavy-handed mus
 
 After writing the skill draft, come up with 2-3 realistic test prompts — the kind of thing a real user would actually say. Share them with the user: [you don't have to use this exact language] "Here are a few test cases I'd like to try. Do these look right, or do you want to add more?" Then run them.
 
-Save test cases to `<skill-name>-workspace/test-prompts.json` as a sibling to the skill directory. Don't write assertions yet — just the prompts. You'll draft assertions in the next step while the runs are in progress. Do not create `evals/` inside the skill directory for temporary evaluation artifacts.
+Save durable evaluation cases outside the skill folder, under `evals/<skill-name>/` at the repository root:
 
-```json
-{
-  "skill_name": "example-skill",
-  "evals": [
-    {
-      "id": 1,
-      "prompt": "User's task prompt",
-      "expected_output": "Description of expected result",
-      "files": []
-    }
-  ]
-}
+```
+skills-repo/
+  skills/
+    <skill-name>/
+      SKILL.md
+      references/
+      assets/
+  evals/
+    <skill-name>/
+      trigger-cases.md
+      output-cases.md
+      regression-cases.md
+```
+
+Use these files this way:
+
+- `trigger-cases.md`: prompts that should or should not trigger the skill.
+- `output-cases.md`: realistic task prompts and expected output qualities for with-skill/baseline comparison.
+- `regression-cases.md`: prompts covering bugs, edge cases, and behaviors that must not regress.
+
+Don't write assertions yet — just the prompts and expected outcomes. You'll draft assertions in the next step while the runs are in progress. Do not create `evals/` inside the skill directory.
+
+```markdown
+# Output Cases
+
+## Case: descriptive-name-here
+Prompt: User's task prompt.
+
+Expected outcome:
+- Description of expected result.
+- Observable quality or artifact to check.
 ```
 
 ## Running and evaluating test cases
 
 This section is one continuous sequence — don't stop partway through. Use the local evaluation workflow here unless the user explicitly asks for a different test harness.
 
-Put results in `<skill-name>-workspace/` as a sibling to the skill directory. Within the workspace, organize results by iteration (`iteration-1/`, `iteration-2/`, etc.) and within that, each test case gets a directory (`eval-0/`, `eval-1/`, etc.). Don't create all of this upfront — just create directories as you go.
+Put results under `evals/<skill-name>/runs/`. Within `runs/`, organize results by iteration (`iteration-1/`, `iteration-2/`, etc.) and within that, each test case gets a directory (`eval-0/`, `eval-1/`, etc.). Don't create all of this upfront — just create directories as you go.
 
 ### Step 1: Run all test cases
 
@@ -182,14 +201,14 @@ Execute this task:
 - Skill path: <path-to-skill>
 - Task: <eval prompt>
 - Input files: <eval files if any, or "none">
-- Save outputs to: <workspace>/iteration-<N>/eval-<ID>/with_skill/outputs/
+- Save outputs to: evals/<skill-name>/runs/iteration-<N>/eval-<ID>/with_skill/outputs/
 - Outputs to save: <what the user cares about — e.g., "the .docx file", "the final CSV">
 ```
 
 **Baseline run** (same prompt, but the baseline depends on context):
 
 - **Creating a new skill**: no skill at all. Same prompt, no skill path, save to `without_skill/outputs/`.
-- **Improving an existing skill**: the old version. Before editing, snapshot the skill (`cp -r <skill-path> <workspace>/skill-snapshot/`), then point the baseline run at the snapshot. Save to `old_skill/outputs/`.
+- **Improving an existing skill**: the old version. Before editing, snapshot the skill (`cp -r <skill-path> evals/<skill-name>/runs/skill-snapshot/`), then point the baseline run at the snapshot. Save to `old_skill/outputs/`.
 
 Write an `eval_metadata.json` for each test case (assertions can be empty for now). Give each eval a descriptive name based on what it's testing — not just "eval-0". Use this name for the directory too. If this iteration uses new or modified eval prompts, create these files for each new eval directory — don't assume they carry over from previous iterations.
 
@@ -204,11 +223,11 @@ Write an `eval_metadata.json` for each test case (assertions can be empty for no
 
 ### Step 2: While runs are in progress, draft assertions
 
-Don't just wait for the runs to finish — you can use this time productively. Draft quantitative assertions for each test case and explain them to the user. If assertions already exist in the workspace's `test-prompts.json`, review them and explain what they check.
+Don't just wait for the runs to finish — you can use this time productively. Draft quantitative assertions for each test case and explain them to the user. If assertions already exist in `evals/<skill-name>/output-cases.md` or `regression-cases.md`, review them and explain what they check.
 
 Good assertions are objectively verifiable and have descriptive names — they should read clearly in the benchmark viewer so someone glancing at the results immediately understands what each one checks. Subjective skills (writing style, design quality) are better evaluated qualitatively — don't force assertions onto things that need human judgment.
 
-Update the `eval_metadata.json` files and workspace `test-prompts.json` with the assertions once drafted. Also explain to the user what they'll see in the viewer — both the qualitative outputs and the quantitative benchmark.
+Update the `eval_metadata.json` files and the relevant case file under `evals/<skill-name>/` with the assertions once drafted. Also explain to the user what they'll see in the viewer — both the qualitative outputs and the quantitative benchmark.
 
 ### Step 3: As runs complete, capture timing data
 
@@ -233,7 +252,7 @@ Once all runs are done:
 2. **Aggregate into benchmark** — run the aggregation script from the skill-creator directory:
 
    ```bash
-   python -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name>
+   python -m scripts.aggregate_benchmark evals/<skill-name>/runs/iteration-N --skill-name <name>
    ```
 
    This produces `benchmark.json` and `benchmark.md` with pass_rate, time, and tokens for each configuration, with mean ± stddev and the delta.
@@ -245,16 +264,16 @@ Put each with_skill version before its baseline counterpart.
 
    ```bash
    nohup python <skill-creator-path>/eval-viewer/generate_review.py \
-     <workspace>/iteration-N \
+     evals/<skill-name>/runs/iteration-N \
      --skill-name "my-skill" \
-     --benchmark <workspace>/iteration-N/benchmark.json \
+     --benchmark evals/<skill-name>/runs/iteration-N/benchmark.json \
      > /dev/null 2>&1 &
    VIEWER_PID=$!
    ```
 
-   For iteration 2+, also pass `--previous-workspace <workspace>/iteration-<N-1>`.
+   For iteration 2+, also pass `--previous-workspace evals/<skill-name>/runs/iteration-<N-1>`.
 
-   **Headless or remote environments:** If opening a browser is not available or the environment has no display, use `--static <output_path>` to write a standalone HTML file instead of starting a server. Feedback may be downloaded as a `feedback.json` file when the user clicks "Submit All Reviews". After download, copy `feedback.json` into the workspace directory for the next iteration to pick up.
+   **Headless or remote environments:** If opening a browser is not available or the environment has no display, use `--static <output_path>` to write a standalone HTML file instead of starting a server. Feedback may be downloaded as a `feedback.json` file when the user clicks "Submit All Reviews". After download, copy `feedback.json` into the current run directory for the next iteration to pick up.
 
 Note: use `generate_review.py` to create the viewer when the script exists; there's no need to write custom HTML. If the viewer script is unavailable in the current repository, present the outputs and benchmark summary directly in the conversation.
 
@@ -322,7 +341,7 @@ After improving the skill:
 
 1. Apply your improvements to the skill
 2. Rerun all test cases into a new `iteration-<N+1>/` directory, including baseline runs. If you're creating a new skill, the baseline is always `without_skill` (no skill) — that stays the same across iterations. If you're improving an existing skill, use your judgment on what makes sense as the baseline: the original version the user came in with, or the previous iteration.
-3. Launch the reviewer with `--previous-workspace` pointing at the previous iteration
+3. Launch the reviewer with `--previous-workspace` pointing at the previous iteration under `evals/<skill-name>/runs/`
 4. Wait for the user to review and tell you they're done
 5. Read the new feedback, improve again, repeat
 
@@ -388,7 +407,7 @@ This step matters — bad eval queries lead to bad descriptions.
 
 Tell the user: "This will take some time — I'll run the optimization loop in the background and check on it periodically."
 
-Save the eval set to the workspace, not inside the skill directory. If this repository includes a description-optimization script compatible with the current agent CLI, run it in the background. For example:
+Save the eval set to `evals/<skill-name>/trigger-cases.md` or a generated artifact under `evals/<skill-name>/runs/`, not inside the skill directory. If this repository includes a description-optimization script compatible with the current agent CLI, run it in the background. For example:
 
 ```bash
 python -m scripts.run_loop \
@@ -439,9 +458,9 @@ Use the same core workflow across Codex, Claude, Antigravity, GitHub Copilot, Cu
 
 **No browser or display**: Generate a static review file when the viewer supports it, or present the prompt, output paths, benchmark summary, and open questions directly in the conversation.
 
-**No benchmark tooling**: Keep the workspace structure and record qualitative results manually. Use small scripts for objective checks when possible.
+**No benchmark tooling**: Keep the `evals/<skill-name>/runs/` structure and record qualitative results manually. Use small scripts for objective checks when possible.
 
-**No description optimizer**: Improve the description manually from trigger eval failures. Keep should-trigger and should-not-trigger examples in the workspace so another environment can rerun them later.
+**No description optimizer**: Improve the description manually from trigger eval failures. Keep should-trigger and should-not-trigger examples in `evals/<skill-name>/trigger-cases.md` so another environment can rerun them later.
 
 **Packaging available**: Use `package_skill.py` when present. If packaging manually, stage generated packages in a writable directory first, then copy them to the requested destination.
 
@@ -464,6 +483,6 @@ Repeating one more time the core loop here for emphasis:
 - Repeat until you and the user are satisfied
 - Package the final skill and return it to the user.
 
-Please add steps to your task list, if the environment has one, to make sure you don't forget. In headless or remote environments, specifically track "Create workspace test prompts and generate a review artifact so the human can review test cases" before revising the skill from your own judgment.
+Please add steps to your task list, if the environment has one, to make sure you don't forget. In headless or remote environments, specifically track "Create evals/<skill-name>/ case files and generate a review artifact so the human can review test cases" before revising the skill from your own judgment.
 
 Good luck!
