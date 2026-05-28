@@ -1,6 +1,6 @@
 ---
 name: skill-creator
-description: Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.
+description: Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, optimize an existing skill, test a skill with realistic prompts, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.
 ---
 
 # Skill Creator
@@ -13,7 +13,8 @@ At a high level, the process of creating a skill goes like this:
 - Write a draft of the skill
 - Create a few test prompts and run an agent with access to the skill on them
 - Help the user evaluate the results both qualitatively and quantitatively
-  - While the runs happen in the background, draft some quantitative evals if there aren't any (if there are some, you can either use as is or modify if you feel something needs to change about them). Then explain them to the user (or if they already existed, explain the ones that already exist)
+  - Keep test prompts, assertions, and run artifacts outside the skill folder, usually in a sibling `<skill-name>-workspace/` directory. The skill folder should contain only `SKILL.md` and bundled resources that are needed for future use.
+  - While the runs happen in the background, draft quantitative assertions if useful. Then explain them to the user.
   - Use the `eval-viewer/generate_review.py` script to show the user the results for them to look at, and also let them look at the quantitative metrics
 - Rewrite the skill based on feedback from the user's evaluation of the results (and also if there are any glaring flaws that become apparent from the quantitative benchmarks)
 - Repeat until you're satisfied
@@ -146,7 +147,7 @@ Try to explain to the model why things are important in lieu of heavy-handed mus
 
 After writing the skill draft, come up with 2-3 realistic test prompts — the kind of thing a real user would actually say. Share them with the user: [you don't have to use this exact language] "Here are a few test cases I'd like to try. Do these look right, or do you want to add more?" Then run them.
 
-Save test cases to `evals/evals.json`. Don't write assertions yet — just the prompts. You'll draft assertions in the next step while the runs are in progress.
+Save test cases to `<skill-name>-workspace/test-prompts.json` as a sibling to the skill directory. Don't write assertions yet — just the prompts. You'll draft assertions in the next step while the runs are in progress. Do not create `evals/` inside the skill directory for temporary evaluation artifacts.
 
 ```json
 {
@@ -161,8 +162,6 @@ Save test cases to `evals/evals.json`. Don't write assertions yet — just the p
   ]
 }
 ```
-
-See `references/schemas.md` for the full schema (including the `assertions` field, which you'll add later).
 
 ## Running and evaluating test cases
 
@@ -205,11 +204,11 @@ Write an `eval_metadata.json` for each test case (assertions can be empty for no
 
 ### Step 2: While runs are in progress, draft assertions
 
-Don't just wait for the runs to finish — you can use this time productively. Draft quantitative assertions for each test case and explain them to the user. If assertions already exist in `evals/evals.json`, review them and explain what they check.
+Don't just wait for the runs to finish — you can use this time productively. Draft quantitative assertions for each test case and explain them to the user. If assertions already exist in the workspace's `test-prompts.json`, review them and explain what they check.
 
 Good assertions are objectively verifiable and have descriptive names — they should read clearly in the benchmark viewer so someone glancing at the results immediately understands what each one checks. Subjective skills (writing style, design quality) are better evaluated qualitatively — don't force assertions onto things that need human judgment.
 
-Update the `eval_metadata.json` files and `evals/evals.json` with the assertions once drafted. Also explain to the user what they'll see in the viewer — both the qualitative outputs and the quantitative benchmark.
+Update the `eval_metadata.json` files and workspace `test-prompts.json` with the assertions once drafted. Also explain to the user what they'll see in the viewer — both the qualitative outputs and the quantitative benchmark.
 
 ### Step 3: As runs complete, capture timing data
 
@@ -237,7 +236,7 @@ Once all runs are done:
    python -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name>
    ```
 
-   This produces `benchmark.json` and `benchmark.md` with pass_rate, time, and tokens for each configuration, with mean ± stddev and the delta. If generating benchmark.json manually, see `references/schemas.md` for the exact schema the viewer expects.
+   This produces `benchmark.json` and `benchmark.md` with pass_rate, time, and tokens for each configuration, with mean ± stddev and the delta.
 Put each with_skill version before its baseline counterpart.
 
 3. **Do an analyst pass** — read the benchmark data and surface patterns the aggregate stats might hide. Look for assertions that always pass regardless of skill (non-discriminating), high-variance evals (possibly flaky), and time/token tradeoffs.
@@ -389,7 +388,7 @@ This step matters — bad eval queries lead to bad descriptions.
 
 Tell the user: "This will take some time — I'll run the optimization loop in the background and check on it periodically."
 
-Save the eval set to the workspace. If this repository includes a description-optimization script compatible with the current agent CLI, run it in the background. For example:
+Save the eval set to the workspace, not inside the skill directory. If this repository includes a description-optimization script compatible with the current agent CLI, run it in the background. For example:
 
 ```bash
 python -m scripts.run_loop \
@@ -442,7 +441,7 @@ Use the same core workflow across Codex, Claude, Antigravity, GitHub Copilot, Cu
 
 **No benchmark tooling**: Keep the workspace structure and record qualitative results manually. Use small scripts for objective checks when possible.
 
-**No description optimizer**: Improve the description manually from trigger eval failures. Keep should-trigger and should-not-trigger examples so another environment can rerun them later.
+**No description optimizer**: Improve the description manually from trigger eval failures. Keep should-trigger and should-not-trigger examples in the workspace so another environment can rerun them later.
 
 **Packaging available**: Use `package_skill.py` when present. If packaging manually, stage generated packages in a writable directory first, then copy them to the requested destination.
 
@@ -451,14 +450,6 @@ Use the same core workflow across Codex, Claude, Antigravity, GitHub Copilot, Cu
 - **Preserve the original name.** Note the skill's directory name and `name` frontmatter field -- use them unchanged. E.g., if the installed skill is `research-helper`, output `research-helper.skill` (not `research-helper-v2`).
 - **Copy to a writeable location before editing if needed.** The installed skill path may be read-only. Copy to `/tmp/skill-name/`, edit there, and package from the copy.
 - **If packaging manually, stage in `/tmp/` first**, then copy to the output directory -- direct writes may fail due to permissions.
-
----
-
-## Reference files
-
-The references/ directory has additional documentation:
-
-- `references/schemas.md` — JSON structures for evals.json, grading.json, etc.
 
 ---
 
@@ -473,6 +464,6 @@ Repeating one more time the core loop here for emphasis:
 - Repeat until you and the user are satisfied
 - Package the final skill and return it to the user.
 
-Please add steps to your task list, if the environment has one, to make sure you don't forget. In headless or remote environments, specifically track "Create evals JSON and generate a review artifact so the human can review test cases" before revising the skill from your own judgment.
+Please add steps to your task list, if the environment has one, to make sure you don't forget. In headless or remote environments, specifically track "Create workspace test prompts and generate a review artifact so the human can review test cases" before revising the skill from your own judgment.
 
 Good luck!
