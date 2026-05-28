@@ -1,6 +1,6 @@
 ---
 name: skill-doc-generator
-description: Generate or update concise Japanese documentation files for Codex skills, such as docs/clean-code.md, from a skill directory or SKILL.md. Use when the user asks to create a docs Markdown file for a skill, summarize a skill for docs, document available skills, sync skill docs with SKILL.md, or output a skill explanation in the standard docs format.
+description: Generate or update concise Japanese documentation files for AI-agent skills, such as docs/clean-code.md, from a skill directory or SKILL.md. Use when the user asks to create a docs Markdown file for a skill, summarize a skill for docs, document available skills, sync skill docs with SKILL.md, or output a skill explanation in the standard docs format.
 ---
 
 # Skill Doc Generator
@@ -60,7 +60,7 @@ Keep the page concise. Prefer 3 to 5 bullets in each bullet section and 4 to 8 n
 ## Writing Guidance
 
 - Base the overview and trigger cases on the frontmatter `description`; this is the most important source for when the skill should be used.
-- Describe what the skill helps Codex do, not how Skills work in general.
+- Describe what the skill helps an AI coding agent do, not how Skills work in general.
 - Turn workflow headings and imperative steps from `SKILL.md` into the `実行フロー` section.
 - List only real outputs the skill is expected to create or modify.
 - Put bundled resources in `参照リソース`, including `references/`, `scripts/`, and `assets/` files that are mentioned by `SKILL.md`.

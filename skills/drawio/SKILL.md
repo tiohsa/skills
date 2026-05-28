@@ -1,6 +1,6 @@
 ---
 name: drawio
-description: Generate or update draw.io diagrams as native .drawio mxGraphModel XML files, with optional PNG/SVG/PDF export that embeds the diagram XML for later editing. Use when Codex needs to create flowcharts, architecture diagrams, ER diagrams, or other diagrams in draw.io format, preserve editable .drawio sources, route edges cleanly, or export editable diagram images/documents through the draw.io CLI.
+description: Generate or update draw.io diagrams as native .drawio mxGraphModel XML files, with optional PNG/SVG/PDF export that embeds the diagram XML for later editing. Use when an AI coding agent needs to create flowcharts, architecture diagrams, ER diagrams, or other diagrams in draw.io format, preserve editable .drawio sources, route edges cleanly, or export editable diagram images/documents through the draw.io CLI.
 ---
 
 # Draw.io Diagram Skill

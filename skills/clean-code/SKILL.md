@@ -1,6 +1,6 @@
 ---
 name: clean-code
-description: Apply clean code principles while implementing, refactoring, or reviewing code. Use when Codex needs to improve readability, maintainability, naming, function design, duplication, comments, code structure, or object-oriented design using DRY, KISS, YAGNI, SOLID, and focused refactoring practices.
+description: Apply clean code principles while implementing, refactoring, or reviewing code. Use when an AI coding agent needs to improve readability, maintainability, naming, function design, duplication, comments, code structure, or object-oriented design using DRY, KISS, YAGNI, SOLID, and focused refactoring practices.
 ---
 
 # Clean Code Implementation
