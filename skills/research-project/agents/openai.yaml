@@ -1,4 +1,0 @@
-interface:
-  display_name: "Research Project"
-  short_description: "Generate project understanding Markdown docs."
-  default_prompt: "Use $research-project to analyze this repository and write a project understanding Markdown file under docs/."

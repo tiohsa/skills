@@ -1,4 +1,0 @@
-interface:
-  display_name: "Skill Doc Generator"
-  short_description: "Generate Japanese docs summaries for skills."
-  default_prompt: "Generate a docs summary for this skill."

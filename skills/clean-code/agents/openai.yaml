@@ -1,4 +1,0 @@
-interface:
-  display_name: "Clean Code"
-  short_description: "Apply clean code principles to coding work."
-  default_prompt: "Use $clean-code while implementing, refactoring, or reviewing this code."
