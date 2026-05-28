@@ -19,7 +19,7 @@
 1. Skill の目的、trigger 条件、期待出力、評価の必要性を確認する。
 2. 必要に応じて edge case、入力形式、依存関係、成功条件を整理する。
 3. `SKILL.md` を作成または改善する。`name` と `description` は frontmatter に必ず含める。
-4. 現実的なテストプロンプトを `evals/evals.json` に保存する。
+4. 現実的なテストプロンプトをリポジトリ直下の `evals/<skill-name>/` に保存する。
 5. with-skill と baseline の両方を同じ iteration で実行し、出力を比較する。
 6. 実行中に客観的な assertions を作成し、結果を grading と benchmark に集約する。
 7. `eval-viewer/generate_review.py` でレビュー用ビューを生成し、結果をもとに Skill を反復改善する。
@@ -28,8 +28,10 @@
 ## 生成・更新する主な成果物
 - `SKILL.md`
 - `references/`、`scripts/`、`assets/` などの bundled resources
-- `evals/evals.json`
-- `<skill-name>-workspace/iteration-N/`
+- `evals/<skill-name>/trigger-cases.md`
+- `evals/<skill-name>/output-cases.md`
+- `evals/<skill-name>/regression-cases.md`
+- `evals/<skill-name>/runs/iteration-N/`
 - `eval_metadata.json`
 - `timing.json`
 - `grading.json`
