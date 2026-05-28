@@ -92,16 +92,18 @@ For regression, save baseline and candidate outputs separately, compare pass rat
 
 ## Output Requirements
 
-When responding to a user, structure the answer in Markdown and include:
+When responding to a user, structure the answer in Markdown. For eval-design or eval-asset requests, include these sections explicitly:
 
-- Assumptions about the target skill and missing context.
-- Proposed eval strategy.
-- Directory structure.
-- Generated or updated cases.
-- Generated scripts when requested.
-- How to run the evals.
-- How to interpret results.
-- Risks and limitations.
+- **Assumptions**: target skill path, whether `SKILL.md` was readable, and any missing context.
+- **Eval Strategy**: trigger, non-trigger, output-quality, and regression coverage.
+- **Directory Structure**: intended `evals/<target-skill>/` and `results/<target-skill>/` layout.
+- **Cases**: generated or updated cases, including `should_not_trigger`.
+- **Scripts**: generated or copied scripts when requested.
+- **How To Run**: `AGENT_CMD` usage and expected stdout/stderr behavior.
+- **How To Interpret Results**: keyword checks as triage plus human review.
+- **Risks and limitations**: keyword brittleness, missing target context, and limits of automated judgment.
+
+Do not merge risks into interpretation. Always include the final section title `Risks and limitations` exactly, even when the workspace is read-only or file creation fails.
 
 ## Using Bundled Resources
 
