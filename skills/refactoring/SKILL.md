@@ -13,7 +13,7 @@ Techniques for improving internal structure without changing externally visible 
 
 1. **Proceed in small steps** - Do not make large changes all at once
 2. **Keep tests passing** - Tests should pass before and after refactoring
-3. **Do not change behavior** - Externally visible behavior stays the same
+3. **Do not change behavior** - Externally visible behavior stays the same, including edge cases and output formatting
 4. **One change at a time** - Do not mix multiple changes
 
 ### When to Refactor
@@ -38,7 +38,7 @@ Signals that refactoring may be needed. See [code-smells.md](references/code-sme
 | **Feature Envy** | Depends heavily on another class's data | Move Function |
 | **Data Clumps** | Data that is used together repeatedly | Extract Class |
 | **Primitive Obsession** | Overuse of primitive types | Replace Primitive with Object |
-| **Switch Statements** | Repeated branching | Replace Conditional with Polymorphism |
+| **Switch Statements** | Repeated branching | Decompose Conditional, Replace Conditional with Lookup Table, or Replace Conditional with Polymorphism |
 
 ---
 
@@ -149,6 +149,36 @@ See [simplifying-conditionals.md](references/simplifying-conditionals.md) for de
 
 ---
 
+### Replace Conditional with Lookup Table
+
+Use a lookup table when each branch selects a simple value or function and polymorphism would add unnecessary structure.
+
+```python
+# Before
+def discount_rate(customer_type):
+    if customer_type == "regular":
+        return 0
+    elif customer_type == "member":
+        return 0.05
+    elif customer_type == "vip":
+        return 0.1
+    return 0
+
+# After
+DISCOUNT_RATES = {
+    "regular": 0,
+    "member": 0.05,
+    "vip": 0.1,
+}
+
+def discount_rate(customer_type):
+    return DISCOUNT_RATES.get(customer_type, 0)
+```
+
+See [simplifying-conditionals.md](references/simplifying-conditionals.md) for details.
+
+---
+
 ### Replace Primitive with Object
 
 Replace primitive values with objects.
@@ -182,9 +212,12 @@ See [organizing-data.md](references/organizing-data.md) for details.
 ### 1. Check Tests
 
 ```bash
-# Confirm that tests pass
-pytest tests/
+# Confirm that tests pass using the project's existing test command
+# Examples: pytest tests/, npm test, pnpm test, bundle exec rspec
+<project-test-command>
 ```
+
+If tests are missing, capture current behavior with narrow characterization tests or input/output examples before changing code.
 
 ### 2. Apply a Small Change
 
@@ -193,14 +226,14 @@ Apply only one refactoring.
 ### 3. Run Tests Again
 
 ```bash
-pytest tests/
+<project-test-command>
 ```
 
-### 4. Commit
+Compare representative boundary cases before and after the change, especially empty collections, default branches, rounding, ordering, whitespace, and serialized output.
 
-```bash
-git commit -m "Refactor: Extract calculate_tax function"
-```
+### 4. Commit Only When Requested
+
+Do not commit automatically. If the user asked for a commit, make one focused commit after tests pass.
 
 ### 5. Repeat
 

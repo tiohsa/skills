@@ -7,6 +7,7 @@
 - [Decompose Conditional](#decompose-conditional)
 - [Consolidate Conditional Expression](#consolidate-conditional-expression)
 - [Replace Nested Conditional with Guard Clauses](#replace-nested-conditional-with-guard-clauses)
+- [Replace Conditional with Lookup Table](#replace-conditional-with-lookup-table)
 - [Replace Conditional with Polymorphism](#replace-conditional-with-polymorphism)
 - [Introduce Special Case](#introduce-special-case)
 
@@ -119,6 +120,50 @@ def get_payment_amount(employee):
         return retired_amount()
     return normal_pay_amount()
 ```
+
+---
+
+## Replace Conditional with Lookup Table
+
+単純な値や関数を選ぶだけの分岐をテーブル参照に置換。
+
+### 動機
+
+- 分岐ごとの差分が小さい
+- 新しいケースを追加しやすい
+- ポリモーフィズムほどの構造は不要
+
+### Before
+
+```python
+def category_multiplier(category):
+    if category == "book":
+        return 0.9
+    elif category == "food":
+        return 1
+    elif category == "electronics":
+        return 1.08
+    return 1
+```
+
+### After
+
+```python
+CATEGORY_MULTIPLIERS = {
+    "book": 0.9,
+    "food": 1,
+    "electronics": 1.08,
+}
+
+def category_multiplier(category):
+    return CATEGORY_MULTIPLIERS.get(category, 1)
+```
+
+### 手順
+
+1. 各分岐の条件と戻り値を表に移す
+2. 元の default/else と同じ fallback を設定する
+3. 未知の値、空入力、既存ケースのテストを通す
 
 ---
 
