@@ -1,71 +1,55 @@
 ---
 name: clean-code
-description: Apply clean code principles while implementing, refactoring, or reviewing code. Use when an AI coding agent needs to improve readability, maintainability, naming, function design, duplication, comments, code structure, or object-oriented design using DRY, KISS, YAGNI, SOLID, and focused refactoring practices.
+description: Improve code readability, maintainability, naming, duplication, control flow, function design, comments, and object-oriented or functional structure using clean code principles such as KISS, YAGNI, DRY, SOLID, and intent-revealing design. Use when asked to refactor, clean up, simplify, remove duplication, improve readability, improve naming, reduce nesting, extract functions, reduce magic values, review code quality, or make code easier to test and maintain. Do not use for infrastructure setup, dependency installation, deployment configuration, or purely visual styling unless the request also involves code structure or maintainability.
 ---
 
-# Clean Code Implementation
+# Clean Code
 
-Use this skill to keep code changes readable, maintainable, and no larger than the problem requires.
+Use this skill to make code easier to understand, safer to change, and cheaper to maintain without unnecessary behavior changes.
+
+## Core Workflow
+
+1. Identify the smallest change that addresses the user's maintainability goal.
+2. State assumptions when behavior preservation, scope, or validation is unclear.
+3. Read nearby code and match existing style, naming, and architecture.
+4. Refactor incrementally; avoid broad rewrites and speculative abstractions.
+5. Remove unused imports, variables, helpers, branches, and comments created by the change.
+6. Validate with the strongest focused local check available.
 
 ## Operating Principles
 
-### Prefer Simple Code
+- Preserve externally observable behavior unless the user explicitly asks for a behavior change.
+- Prefer direct, locally understandable code over clever expressions or framework-like indirection.
+- Implement only what is needed for the current request; do not add extension points for hypothetical future uses.
+- Remove semantic duplication: shared business knowledge, rules, calculations, or decisions. Keep similar-looking code separate when it represents different domain concepts.
+- Apply SOLID only when it reduces real friction such as mixed responsibilities, hard-to-test side effects, invalid inheritance, or broad interfaces.
+- Prefer names that reveal domain meaning and units. Avoid vague names such as `data`, `item`, `result`, `temp`, or `manager` unless the local scope makes the meaning obvious.
+- Use comments to explain why a decision exists, not what the code mechanically does.
 
-Apply KISS first:
-- Choose direct, explicit code over clever expressions.
-- Avoid premature optimization.
-- Keep control flow easy to scan.
-- Prefer early returns over deeply nested conditionals when it improves readability.
-
-### Implement Only What Is Needed
-
-Apply YAGNI:
-- Do not add features, options, abstractions, extension points, or configuration for hypothetical future needs.
-- Defer generalization until a real second or third use case appears.
-- Keep the current requirement as the boundary for the change.
-
-### Remove Meaningful Duplication
-
-Apply DRY to knowledge, not surface shape:
-- Extract duplicated logic when the same rule must change in multiple places.
-- Prefer local duplication over a forced abstraction when code only looks similar by accident.
-- Avoid making a shared helper until its name and responsibility are obvious.
-
-## Implementation Checklist
-
-Before editing:
-- State assumptions when requirements are ambiguous.
-- Identify the smallest behavioral change that satisfies the task.
-- Check nearby style and match it.
-
-While editing:
-- Keep each changed line tied to the user's request.
-- Keep functions small enough to explain with one short sentence.
-- Use names that reveal intent and domain meaning.
-- Replace unexplained literals with named constants when the meaning is not obvious.
-- Prefer pure functions and explicit data flow where practical.
-- Keep argument lists short; introduce a parameter object only when arguments naturally travel together.
-- Write comments for why something is necessary, not what the code already says.
-
-After editing:
-- Remove imports, variables, branches, or helpers made unused by the change.
-- Run the most focused available test, typecheck, or linter.
-- If no validation is practical, state that clearly.
-
-## Code Review Heuristics
-
-When reviewing code, prioritize:
-- Incorrect behavior or hidden side effects.
-- Overly broad abstractions.
-- Long functions that mix validation, transformation, persistence, and presentation.
-- Names that hide domain intent.
-- Duplicated business rules.
-- Comments that compensate for unclear code.
-- Dead code or speculative branches introduced by the change.
-
-## References
+## Refactoring Guidance
 
 Load only the reference needed for the current task:
-- For object-oriented design tradeoffs, read [solid-principles.md](references/solid-principles.md).
-- For naming decisions, read [naming-conventions.md](references/naming-conventions.md).
-- For code smell cleanup, read [refactoring-patterns.md](references/refactoring-patterns.md).
+
+- For naming decisions, boolean names, units, and vague-name cleanup, read [naming-conventions.md](references/naming-conventions.md).
+- For extracting functions, inlining weak abstractions, replacing magic numbers, parameter objects, strategy, and dead code cleanup, read [refactoring-patterns.md](references/refactoring-patterns.md).
+- For object-oriented design tradeoffs and when SOLID is or is not worth applying, read [solid-principles.md](references/solid-principles.md).
+
+## Validation
+
+Prefer focused verification over broad unrelated checks:
+
+- Unit tests for changed behavior or preserved behavior.
+- Type checks or lint checks for structural refactors.
+- Build checks when the change crosses module boundaries.
+- Manual before/after inspection when automated checks are unavailable.
+
+If validation cannot be run, state exactly what remains unverified.
+
+## Final Response
+
+Report concisely:
+
+- What was improved.
+- The main files or code areas changed.
+- What validation was run.
+- Any behavior risk, compatibility concern, or unverified area.
