@@ -7,16 +7,11 @@ description: Use this skill when implementing from a specification, requirements
 
 Use this skill to keep implementation honest when code is supposed to follow a specification or plan. The goal is to preserve the difference between "what the source document said" and "what had to be decided while building it" so reviewers can see every assumption, compromise, and change instead of reconstructing them from code after the fact.
 
-## When To Use
+## Activation Check
 
-Use this skill when a user asks you to implement from any source of intended behavior, including:
+Proceed only when a decision log is explicitly requested or clearly implied by implementation from a source document or plan. Tiny mechanical edits do not need a decision log unless the user asks for one.
 
-- A specification, requirements document, design doc, architecture note, issue, ticket, checklist, or planning document.
-- A prompt that says to follow a plan, spec, or written instructions.
-- A task where the user explicitly wants undocumented judgments, changes, compromises, or decisions preserved.
-- A multi-step implementation where ambiguities or tradeoffs are likely to appear.
-
-Do not create a decision log for tiny mechanical edits where there is no real implementation judgment, unless the user explicitly asks for one.
+If the task seems to be a pre-implementation planning document, simple changelog, or ordinary code explanation, use a more specific skill or normal workflow instead.
 
 ## Core Rule
 
@@ -49,12 +44,13 @@ If you are unsure whether something belongs in the log, include it briefly. A sh
    - Default path: `{project_root}/docs/implementation-decisions/`.
    - Default filename: `YYYY-MM-DD-short-task-slug.md`.
    - If a project already has a stronger local convention for decision records, follow it while preserving this skill's fields.
+   - If the default path is ignored by version control or otherwise unsuitable, look for a tracked local convention first; otherwise keep the log at the default path and mention the tracking limitation to the user before finishing.
    - If a file with that name exists, append `-2`, `-3`, etc.
 
 4. Read `references/decision-log-template.md` from this skill directory and use it as the starting point.
    - Preserve the section order and metadata fields.
    - Replace every placeholder with task-specific content.
-   - Write the log in Japanese by default.
+   - Write the log in the user's language or the source document's language. If unclear, match the active conversation language.
    - Keep code symbols, file paths, command names, package names, API names, and quoted source text in their original spelling when that improves searchability.
 
 5. While implementing, update the log whenever a qualifying decision happens.
