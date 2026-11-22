@@ -1,115 +1,208 @@
----
-name: agent-first-architecture
-version: "1.0.0"
-description: Design agent-first repos with deterministic guardrails and verification loops. Do NOT use for routine feature coding or one-off bug fixes.
+## name: agent-first-architecture
+description: Inspect any new or existing repository, reuse installed linters/test runners (or recommend standard ones if missing), and generate deterministic architecture guardrails, Clean Architecture directory boundaries, modular LLM rules (AGENTS.md + agents/rules/), and a runtime verification harness.
 metadata:
-  author: "agent-skills-installer"
-  tags:
-    - architecture
-    - guardrails
-    - linting
-    - verification
----
+version: "2.1.0"
+author: "custom"
+tags:
+- architecture
+- clean-architecture
+- guardrails
+- linting
+- verification
+- agents-md
 
-# Agent-First Architecture
+# Agent-First Architecture & Guardrail Generator
 
-Architect repositories and engineering workflows so that the shortest path for an AI coding agent is also the safest, cleanest, and most maintainable path. Push quality enforcement down from prose prompts into deterministic codebase structure, static analysis, and runtime verification.
-
-## Purpose
-
-Give teams and coding agents a repeatable blueprint for structuring repositories, enforcing architectural boundaries with deterministic tooling, and building runtime verification harnesses so autonomous changes are caught by gates rather than manual review.
-
-## Prerequisites
-
-- A target repository (greenfield or existing) with version control and CI.
-- Language-appropriate static analysis tools (type checker, AST linter, and dependency-graph analyzer such as `dependency-cruiser` or native module visibility).
-- A local or containerized runtime capable of executing the application and verification CLI.
+Bootstrap or harden any greenfield or brownfield repository so that the shortest path for an AI coding agent is also the safest, cleanest, and most verifiable path. Prioritize existing project conventions and installed tooling over introducing redundant dependencies.
 
 ## When to Use
 
-- Bootstrapping a new (greenfield) repository intended for heavy AI agent contribution.
-- Refactoring an existing codebase where AI agents repeatedly introduce regressions, architectural boundary violations, or quick-fix workarounds.
-- Translating recurring code review feedback into automated lint rules, dependency graph checks, or safer framework APIs.
-- Designing a runtime verification harness (Feature Map + verification CLI) so agents can test their own changes end-to-end.
+* Bootstrapping a new (greenfield) repository with Clean Architecture / Clean Code folder boundaries, strict dependency direction rules, modular LLM rules, and runtime verification.
+
+* Retrofitting an existing (brownfield) repository with architectural boundaries, ratchet-mode lint rules, modular `AGENTS.md` / `agents/rules/`, and a verification harness without breaking existing framework conventions.
+
+* User explicitly specifies a target stack/toolset or asks to auto-detect and configure guardrails for the current repo.
 
 ## Core Principles
 
-1. **Inverted Trust Pyramid:** Invest effort in descending order of determinism:
-   - **Layer 1 - Codebase & APIs (Hardest):** Directory boundaries, feature colocation, and safe high-level primitives that hide error-prone low-level APIs.
-   - **Layer 2 - Static Analysis (Hard):** Custom AST lint rules, strict type systems, and dependency graph checks that fail CI immediately.
-   - **Layer 3 - Runtime & Formal Verification (Evidence):** Execution drivers, telemetry checks, property-based tests, and model checking.
-   - **Layer 4 - Prose Rules (Softest):** `AGENTS.md` and skills reserved strictly for judgment calls that cannot be encoded in tooling.
-2. **Shortest Path Is Best Path:** Agents imitate existing patterns and take shortcuts. Provide one canonical way to build features, include one golden reference feature, and block alternative patterns mechanically.
-3. **Eliminate Nuance-Heavy APIs:** Any API that requires deep lifecycle nuance or subtle timing (such as raw effect hooks, imperative timers, raw SQL, or unsafe blocks) should be banned in product code and encapsulated inside a dedicated `framework-core` package.
-4. **Guided Diagnostics Over Comments:** Ban explanatory code comments and lint-suppression directives in product code so agents cannot write excuses for workarounds. Make every lint error message explicitly instruct the agent which approved API or directory to use instead.
+1. **Discover and Reuse Before Adding:** Always inspect the repository first. Reuse installed linters, formatters, type checkers, test runners, and task runners. Only recommend or add new tools when a required guardrail capability (such as dependency-boundary checking or browser/CLI verification) is genuinely absent.
+
+2. **Inverted Trust Pyramid (Strongest Determinism First):**
+
+   * **Layer 1 - Directory & API Boundaries:** Clean Architecture dependency rule (inward-only dependencies), feature/use-case colocation, explicit public entry points (`index.*` / `public.*`), and an isolated `infrastructure/` / `core/` layer for external frameworks and low-level APIs.
+
+   * **Layer 2 - Static Analysis & CI Gates:** Dependency-direction checks, restricted-API lints with guided remediation messages, and suppression-comment bans.
+
+   * **Layer 3 - Runtime Verification Harness:** `verification/feature-map.json` + a single deterministic verification command wrapping existing test/E2E runners and emitting structured JSON evidence.
+
+   * **Layer 4 - Modular Prose Rules:** Minimal `AGENTS.md` (<100 lines) + atomic `agents/rules/{section}-{rule}.md` files with YAML frontmatter and Incorrect/Correct code examples.
+
+3. **Greenfield Clean Architecture vs. Brownfield Ratcheting:**
+
+   * **Greenfield:** Enforce Clean Architecture layers (`domain`, `application`, `adapters`, `infrastructure`) paired with vertical feature slices so business rules stay 100% framework-agnostic.
+
+   * **Brownfield:** Never force a big-bang rewrite. Preserve native framework roots (e.g., Rails `app/`, Next.js `src/app/`, .NET projects), baseline existing violations (Ratchet Mode), and apply strict boundaries to all new or modified features.
+
+4. **Actionable Diagnostics & Pragmatic Comments:** Ban lint/type suppression directives (`eslint-disable`, `@ts-ignore`, `# rubocop:disable`, `#[allow(...)]`) in product code outside `infrastructure/` / `core/`, and make lint messages name the approved replacement. Allow concise "Why" comments explaining domain invariants, while banning excuse/workaround comments.
 
 ## Step-by-Step Workflow
 
-### Step 1: Structure Execution Boundaries and Feature Colocation
+### Step 1: Repository & Toolchain Discovery (Mandatory First Step)
 
-Partition the repository so agents cannot accidentally mix execution contexts (for example, heavy I/O or blocking computation inside a UI rendering thread) and can complete 80%+ of feature work inside a single directory without global searches.
+Scan the repository root and manifest files before proposing or generating any files:
 
-```text
+1. **Detect Mode:**
+
+   * **Greenfield:** Empty or minimal starter files -> generate the Clean Architecture canonical layout.
+
+   * **Brownfield:** Existing source code / framework structure -> adapt boundaries to existing roots and enable baseline/ratchet mode.
+
+2. **Detect Stack & Installed Tools:**
+
+   * **JS / TS (`package.json`):** Check for Biome, ESLint, Oxlint, TypeScript (`tsc`), `dependency-cruiser`, Vitest, Jest, Playwright, Cypress.
+
+   * **Ruby / Rails (`Gemfile`):** Check for RuboCop, Packwerk, Brakeman, RSpec, Minitest, Capybara.
+
+   * **Python (`pyproject.toml`, `requirements*.txt`):** Check for Ruff, Flake8, Mypy, Pyright, `import-linter`, Pytest, Playwright.
+
+   * **Rust (`Cargo.toml`):** Check for Clippy, workspace crate boundaries, `cargo nextest` / `cargo test`.
+
+   * **.NET (`*.csproj`, `*.sln`):** Check for `.editorconfig`, Roslyn analyzers, ArchUnitNET / NetArchTest, xUnit / NUnit.
+
+   * **User Overrides:** If the user explicitly names preferred tools or target stacks, honor those first.
+
+3. **Gap Analysis & Recommendation:**
+
+   * Map each guardrail requirement to an **already-installed tool** whenever possible.
+
+   * If a capability is missing (e.g., no dependency-boundary checker or no E2E driver), propose the single most standard, lightweight option for that ecosystem and ask for confirmation before adding new packages.
+
+### Step 2: Generate Directory & Boundary Blueprint
+
+#### Option A: Greenfield Layout (Clean Architecture / Clean Code)
+
+Enforce the **Dependency Rule**: dependencies only point inward (`infrastructure` / `adapters` -> `application` -> `domain`). Inner layers have zero knowledge of frameworks, databases, UI, or external I/O.
+
+```
 repo-root/
-├── packages/
-│   └── framework-core/         # Only location permitted to wrap low-level/nuanced APIs
-├── layers/
-│   ├── <runtime-a>/            # e.g., client / renderer / api-gateway
-│   │   ├── entry-points/       # Top-level routes, windows, or command handlers
-│   │   └── features/           # One directory per feature (strict colocation)
-│   │       ├── reference-example/  # Golden sample for agents to imitate
-│   │       └── <feature-id>/
-│   │           ├── index.*     # Sole public contract exported to other modules
-│   │           └── internal/   # Private implementation (cross-import forbidden)
-│   └── <runtime-b>/            # e.g., server / main-process / background-worker
-├── contracts/                  # Shared schemas, types, and typed IPC/RPC channels
+├── AGENTS.md                           # Minimal entrypoint (<100 lines): map, commands, workflow
+├── agents/
+│   └── rules/                          # Modular rules (Cal.com style: frontmatter + NG/OK examples)
+│       ├── _sections.md
+│       ├── architecture-clean-layers.md
+│       └── quality-guardrails.md
+├── src/
+│   ├── domain/                         # Innermost: Pure entities, value objects, domain errors, repository interfaces (NO external deps)
+│   │   ├── _reference-example/
+│   │   └── <bounded-context>/
+│   ├── application/                    # Use cases / interactors, input/output DTOs, port interfaces (depends ONLY on domain/)
+│   │   ├── _reference-example/
+│   │   └── <feature-id>/
+│   │       ├── index.*                 # Sole public use-case contract exposed to adapters
+│   │       └── internal/               # Private use-case helpers (cross-feature import forbidden)
+│   ├── adapters/                       # Interface adapters: controllers, presenters, HTTP/CLI handlers, repository implementations
+│   │   ├── inbound/                    # Entry points (REST/GraphQL handlers, UI views, CLI commands)
+│   │   └── outbound/                   # Implementations of domain/application repository & gateway ports
+│   ├── infrastructure/                 # Outermost (Frameworks & Drivers): DB clients, raw SQL, timers, external SDK wrappers, DI composition root
+│   └── shared/                         # Pure cross-cutting primitives (Result/Option types, clock/id abstractions)
+├── tests/                              # Mirrors src/ structure (unit for domain/application, integration for adapters/infrastructure)
 ├── verification/
-│   ├── feature-map.json        # User-perspective map of features, shortcuts, and selectors
-│   └── driver-cli.*            # Reusable CLI to launch, drive, and inspect the app
-└── AGENTS.md                   # Minimal workflow and verification commands
+│   ├── feature-map.json                # User-perspective routes, shortcuts, selectors, invariants
+│   └── verify-cli.* (or script)        # Single entrypoint wrapping static + unit + E2E checks
+└── .github/CODEOWNERS                  # Protect lint configs, agents/rules/, and verification/
+
 ```
 
-### Step 2: Configure Deterministic Static Guardrails
+#### Option B: Brownfield Layout (Existing Framework Adaptation)
 
-Enforce architecture rules through CI-blocking static checks rather than prose instructions:
+Preserve existing framework roots (e.g., Rails `app/`, Next.js `src/app/`) while isolating new work into feature slices and wrapping low-level APIs in `core/`:
 
-- **Layer & Feature Boundary Checks:** Configure a dependency graph analyzer (such as `dependency-cruiser` or language-native module visibility) to reject:
-  - Direct imports between separated runtime layers (force communication through `contracts/`).
-  - Cross-feature imports targeting anything inside `features/<other>/internal/`.
-- **Guided AST Lint Rules:** Ban nuanced APIs, imperative timers, code comments, and lint suppressions (`eslint-disable`, `@ts-ignore`, `#[allow(...)]`) in product code. Exempt only `packages/framework-core/`. Write every lint message as a direct remediation instruction pointing to the supported primitive.
-- **Ratchet Mode for Existing Repos:** When introducing rules to a legacy repository, record existing violations as a baseline so CI blocks 100% of new violations while allowing incremental cleanup.
-- **Anti-Tampering Protection:** Protect linter configs, architecture rule files, and `verification/` drivers from unapproved agent edits (require explicit human review on changes to guardrail definitions).
+```
+repo-root/
+├── AGENTS.md
+├── agents/rules/
+├── core/                               # Only place allowed to wrap raw/nuance-heavy APIs
+├── <existing-app-root>/
+│   ├── entry-points/ (or existing controllers/routes)
+│   ├── features/
+│   │   ├── _reference-example/
+│   │   └── <feature-id>/
+│   │       ├── index.*
+│   │       └── internal/
+│   └── contracts/
+├── verification/
+└── .github/CODEOWNERS
 
-### Step 3: Build the Runtime Verification Harness
+```
 
-Enable agents to run the software like a real user and inspect structured evidence before requesting review:
+### Step 3: Configure Deterministic Static Guardrails
 
-1. **Create `verification/feature-map.json`:** Map user-facing terminology (navigation paths, keyboard shortcuts, stable test attributes like `data-feature` / `data-action`, and expected invariants) so agents never guess UI or API entry points.
-2. **Create `verification/driver-cli`:** Provide a single deterministic CLI command that launches the target in isolation (or routes requests to an ephemeral service instance in distributed systems), executes feature flows, captures screenshots/traces/logs, and outputs structured JSON.
-3. **Measure Both Correctness and Performance:** Have the driver fail not only on functional errors or console exceptions, but also on performance budget regressions (such as frame render times exceeding 16ms, memory leaks, or latency thresholds).
+Using the detected (or user-approved) tools, generate concrete configuration updates:
 
-### Step 4: Establish the Continuous Hardening Loop
+1. **Clean Architecture Dependency Direction (Greenfield) & Boundary Enforcement:**
 
-- **Three-Strike Rule:** Whenever a human reviewer corrects the same agent mistake two or three times, stop reviewing for it manually and convert the correction into a lint rule, type constraint, or safer `framework-core` API.
-- **Blind Skill & Map Evals:** Periodically test agent workflows inside anonymized, isolated directories so agents do not alter behavior upon detecting an evaluation, and score outputs using an independent model judge.
+   * `domain/` MUST NOT import from `application/`, `adapters/`, `infrastructure/`, or any external framework/I/O library.
 
-## Gotchas
+   * `application/` MUST ONLY import from `domain/` and `shared/` (never `adapters/` or `infrastructure/`).
 
-- **Do Not Rely on `AGENTS.md` Alone:** Prose rules decay as context grows. If a constraint can be checked by a compiler, type system, or linter, encode it there instead.
-- **Do Not Leave Legacy Anti-Patterns Unmarked:** Agents treat existing code as ground truth. Quarantine or clean up bad examples early so agents do not replicate them.
-- **Do Not Automate an Unreliable Inner Loop:** Never enable autonomous PR creation or auto-merging until local static gates and runtime verification reliably catch regressions on a single task.
+   * `adapters/` MUST NOT bypass `application/` to manipulate `infrastructure/` internals directly except via DI composition root.
 
-## Limitations
+   * Cross-feature imports MUST go through `index.*` / `public.*` (block `*/internal/*`).
 
-- Static guardrails enforce structural, dependency, and syntactic rules; they cannot validate domain correctness or product requirements on their own.
-- Applying strict lint rules to a large legacy codebase all at once will block delivery unless introduced with a baseline/ratchet mechanism.
-- Anti-tampering protection for linter configs and verification drivers requires repository-level enforcement (such as `CODEOWNERS` and branch protection), not just conventions inside the repo.
+   * Tool mapping: `eslint-plugin-boundaries` / `no-restricted-imports` / `dependency-cruiser` (JS/TS), `import-linter` (Python), `packwerk` or custom RuboCop cop (Rails), Cargo workspace crates (Rust), NetArchTest / ArchUnitNET (C#).
 
-## Troubleshooting
+2. **Restricted APIs & Guided Messages:**
 
-| Symptom / Error | Cause | Solution |
-| --- | --- | --- |
-| Existing repository fails CI immediately after enabling new rules | Legacy violations predate the new guardrails | Enable ratchet mode with a recorded baseline so CI blocks only new violations while existing ones are cleaned up incrementally |
-| Agents bypass lint rules using suppression comments or workarounds | Suppression directives (`eslint-disable`, `@ts-ignore`, etc.) are permitted in product code | Ban suppression directives and explanatory workaround comments outside `packages/framework-core/`, and include the approved alternative in the lint error message |
-| Agents repeatedly modify wrong UI selectors or API routes during verification | No canonical user-perspective map exists | Maintain `verification/feature-map.json` with stable test attributes (`data-feature`, `data-action`) and entry points |
-| Agents weaken linter configs or verification scripts to make checks pass | Guardrail files lack change-control protection | Require explicit human review via `CODEOWNERS` and branch protection on linter configs, architecture rules, and `verification/` |
+   * Restrict raw timers, raw SQL, unsafe/low-level hooks, or direct I/O in `domain/`, `application/`, and `adapters/`; point lint error messages directly to `infrastructure/` (or `core/`) abstractions.
+
+3. **Anti-Suppression Rules:**
+
+   * Disallow lint/type suppression directives (`eslint-disable`, `@ts-ignore`, `# rubocop:disable`, `#[allow(...)]`) in `domain/`, `application/`, and `adapters/`, exempting `infrastructure/` (or `core/`) and generated files only where strictly necessary.
+
+4. **Ratchet Baseline (Brownfield):**
+
+   * Generate or document the baseline command (e.g., `rubocop --auto-gen-config`, ESLint baseline/suppression list, `import-linter` contracts for new modules) so CI blocks 100% of new violations immediately.
+
+### Step 4: Generate Modular LLM Rules (`AGENTS.md` & `agents/rules/`)
+
+1. **`AGENTS.md`:** Keep concise and operational:
+
+   * Repository layout & Clean Architecture dependency direction rules (`infrastructure` / `adapters` -> `application` -> `domain`).
+
+   * Pointer to `_reference-example/` as the canonical pattern.
+
+   * Single verification command (e.g., `npm run verify:all` / `bin/verify`).
+
+   * Three-Strike Rule: Any review correction repeated 2+ times must be promoted into a static lint rule or safe abstraction.
+
+2. **`agents/rules/{section}-{rule-name}.md`:** Create initial atomic rules using:
+
+   * YAML frontmatter (`title`, `impact`: `CRITICAL|HIGH|MEDIUM`, `tags`).
+
+   * Concise rationale ("Why").
+
+   * Concrete `**Incorrect:**` and `**Correct:**` code snippets tailored to the repo's actual language (e.g., importing an ORM entity inside `domain/` vs. keeping `domain/` pure).
+
+### Step 5: Build the Runtime Verification Harness (`verification/`)
+
+1. **`verification/feature-map.json`:** Define schema with `features[]` containing `id`, `entryPoint`, `selectors` (`data-feature`, `data-action`), `flows`, and `invariants` (including performance budgets where relevant).
+
+2. **`verification/verify-cli` (and package/task script `verify:all`):**
+
+   * Wrap existing static checks, unit/integration tests, and E2E/smoke tests into one deterministic command.
+
+   * Emit a structured JSON summary (`status`, `checks[]`, `durationMs`, `artifacts`) and exit `0` only when all gates pass.
+
+3. **Anti-Tampering (`CODEOWNERS`):** Add entries requiring human code-owner review for linter configs, dependency rules, `agents/rules/`, and `verification/`.
+
+## Output Checklist
+
+When executing this skill on a target repository, deliver:
+
+1. **Discovery Summary:** Detected mode (Greenfield Clean Architecture vs. Brownfield), stack, reused tools, and any recommended additions (clearly separated).
+
+2. **Directory & Migration Plan:** Exact paths adapted to the repo.
+
+3. **Ready-to-Apply Config & Rule Files:** Linter/dependency-direction configs, `AGENTS.md`, starter `agents/rules/*.md`, `_reference-example/`, `verification/feature-map.json`, `verification/verify-cli`, and `CODEOWNERS` snippet.
+
+4. **Single Verification Command:** Exact command to run and validate the setup end-to-end.
