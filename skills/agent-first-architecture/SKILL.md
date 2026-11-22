@@ -1,15 +1,12 @@
-## name: agent-first-architecture
+---
+name: agent-first-architecture
 description: Inspect any new or existing repository, reuse installed linters/test runners (or recommend standard ones if missing), and generate deterministic architecture guardrails, Clean Architecture directory boundaries, modular LLM rules (AGENTS.md + agents/rules/), and a runtime verification harness.
 metadata:
-version: "2.1.0"
-author: "custom"
-tags:
-- architecture
-- clean-architecture
-- guardrails
-- linting
-- verification
-- agents-md
+  github-path: skills/agent-first-architecture
+  github-ref: refs/heads/main
+  github-repo: https://github.com/tiohsa/skills
+  github-tree-sha: 02896b5c613406b55c5a17d0d4a0e1c8f748bba2
+---
 
 # Agent-First Architecture & Guardrail Generator
 
