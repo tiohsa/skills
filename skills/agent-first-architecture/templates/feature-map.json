@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "runtime": {
+    "startCommand": "<e.g. npm run dev:test | bin/rails server -e test>",
+    "healthCheck": "<e.g. http://localhost:3000/health | CLI --version>",
+    "isolationMode": "ephemeral-process"
+  },
+  "defaultPerformanceBudget": {
+    "maxStartupMs": 5000,
+    "maxActionLatencyMs": 500,
+    "maxFrameRenderMs": 16
+  },
+  "features": [
+    {
+      "id": "reference-example",
+      "summary": "Golden reference feature verifying core end-to-end flow",
+      "entryPoint": "<e.g. /example | CLI: app example | RPC: example.run>",
+      "selectors": {
+        "root": "[data-feature='reference-example']",
+        "primaryAction": "[data-action='submit-example']"
+      },
+      "flows": [
+        {
+          "name": "happy-path",
+          "steps": [
+            "Navigate to or invoke entryPoint",
+            "Trigger primaryAction with valid input",
+            "Assert expected observable state transition"
+          ]
+        }
+      ],
+      "invariants": [
+        "Zero unhandled console or stderr errors",
+        "Response/render completes within defaultPerformanceBudget"
+      ],
+      "performanceBudget": {
+        "maxActionLatencyMs": 300
+      }
+    }
+  ]
+}
