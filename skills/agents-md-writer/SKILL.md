@@ -1,14 +1,6 @@
 ---
 name: agents-md-writer
-version: "1.0.0"
 description: Create, audit, or consolidate repository AGENTS.md instructions for AI coding agents. Triggers: "AGENTS.mdを作って", "AIエージェント用の指示を整備して".
-metadata:
-  author: "agent-skills-installer"
-  tags:
-    - agents-md
-    - documentation
-    - coding-agents
-    - repository-rules
 ---
 
 # AGENTS.md Writer
@@ -100,11 +92,13 @@ For one-off implementation guidance that should not be saved in the repo, answer
 ### Creating a new `AGENTS.md`
 
 Prompt:
+
 ```text
 このリポジトリの package.json と CI ワークフローを読んで、AI コーディングエージェント向けの AGENTS.md を作って。
 ```
 
 Resulting `AGENTS.md` structure:
+
 ```markdown
 # Project Overview
 TypeScript monorepo managed with pnpm.
