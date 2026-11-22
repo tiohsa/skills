@@ -1,11 +1,26 @@
 ---
 name: error-analysis
-description: A skill for analyzing errors, identifying causes, and determining responses. Supports debugging techniques, root cause analysis (RCA), 5 Whys, and interpreting error messages. Use for bug fixes, troubleshooting, and incident response.
+version: "1.0.0"
+description: Analyze errors, interpret stack traces, and perform root cause analysis (RCA / 5 Whys). Use for debugging and incident response.
+metadata:
+  author: "agent-skills-installer"
+  tags:
+    - debugging
+    - root-cause-analysis
+    - troubleshooting
+    - error-handling
 ---
 
 # Error Analysis
 
-A guide for systematically identifying and resolving the causes of errors.
+## Purpose
+
+Provide a systematic process for interpreting error messages, isolating failures, and identifying root causes rather than applying surface-level workarounds.
+
+## Prerequisites
+
+- Access to the error message, stack trace, or relevant application/system logs.
+- A reproducible test case or environment where the symptom can be observed.
 
 ## Basic Analysis Steps
 
@@ -89,3 +104,8 @@ See [error-types.md](references/error-types.md) for details.
 - **Debugging Techniques**: [debugging-techniques.md](references/debugging-techniques.md)
 - **Error Types**: [error-types.md](references/error-types.md)
 - **Root Cause Analysis**: [root-cause-analysis.md](references/root-cause-analysis.md)
+
+## Limitations
+
+- Guide-only skill: does not directly collect logs, attach debuggers, or execute runtime profilers.
+- Accurate root cause analysis requires observable evidence; avoid guessing without logs or reproduction steps.

@@ -1,0 +1,38 @@
+# 依存ファイルの読み込み
+require_dependency File.expand_path('../lib/{{plugin_name}}_hook_listener', __FILE__)
+
+# パッチの適用
+Rails.configuration.to_prepare do
+  # モデルパッチ（必要に応じてコメント解除）
+  # require_dependency '{{plugin_name}}/issue_patch'
+  # require_dependency '{{plugin_name}}/project_patch'
+end
+
+Redmine::Plugin.register :{{plugin_name}} do
+  name '{{plugin_display_name}}'
+  author '{{author_name}}'
+  description '{{plugin_description}}'
+  version '{{version}}'
+  url '{{plugin_url}}'
+  author_url '{{author_url}}'
+  
+  # Redmineバージョン要件（オプション）
+  # requires_redmine version_or_higher: '4.0.0'
+  
+  # 他プラグインへの依存（オプション）
+  # requires_redmine_plugin :other_plugin, version_or_higher: '1.0.0'
+  
+  # プラグイン設定ページ（オプション）
+  # settings default: { 'key' => 'default_value' },
+  #          partial: 'settings/{{plugin_name}}_settings'
+  
+  # プロジェクトモジュール
+  project_module :{{module_name}} do
+    permission :view_{{resource_name}}, { {{controller_name}}: [:index, :show] }
+    permission :manage_{{resource_name}}, { {{controller_name}}: [:new, :create, :edit, :update, :destroy] }
+  end
+  
+  # プロジェクトメニュー
+  menu :project_menu, :{{resource_name}}, { controller: '{{controller_name}}', action: 'index' },
+       caption: :label_{{resource_name}}, after: :activity, param: :project_id
+end

@@ -1,11 +1,26 @@
 ---
 name: test-driven-development
-description: Guides test implementation according to test-driven development (TDD) principles. Supports the Red-Green-Refactor cycle, unit tests, mocks, and stubs. Use for test implementation, TDD, and test design.
+version: "1.0.0"
+description: Guide test implementation using the Red-Green-Refactor TDD cycle, unit tests, mocks, and stubs. Use for TDD and test design.
+metadata:
+  author: "agent-skills-installer"
+  tags:
+    - tdd
+    - testing
+    - unit-tests
+    - mocking
 ---
 
 # Test-Driven Development
 
-A development method where tests are written first and code is written afterward.
+## Purpose
+
+Guide a test-first development workflow where failing tests are written before production code and verified continuously through Red-Green-Refactor cycles.
+
+## Prerequisites
+
+- A working test runner for the project's language and framework (e.g., `pytest`, `jest`, `vitest`, `rspec`).
+- Knowledge of the expected inputs, outputs, and edge cases for the feature under test.
 
 ## TDD Principles
 
@@ -227,3 +242,15 @@ def fizzbuzz(n):
 - **Unit Testing**: [unit-testing.md](references/unit-testing.md)
 - **Mocks and Stubs**: [mocking.md](references/mocking.md)
 - **Test Patterns**: [test-patterns.md](references/test-patterns.md)
+
+## Limitations
+
+- Guide-only skill: does not configure or install project test frameworks.
+- Over-mocking internal implementation details can couple tests to structure and hinder refactoring.
+
+## Troubleshooting
+
+| Error / Symptom | Cause | Solution |
+| :--- | :--- | :--- |
+| Test passes immediately in Red phase | Assertion is missing, tautological, or testing existing behavior | Verify the test asserts the new requirement and fails before production code changes |
+| Flaky or order-dependent tests | Shared mutable state, wall-clock time, or external network calls | Isolate state per test and inject/stub time, randomness, and external I/O |

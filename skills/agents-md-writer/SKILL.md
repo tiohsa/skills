@@ -1,119 +1,134 @@
 ---
 name: agents-md-writer
-description: Use this skill when a user asks to create, rewrite, review, audit, or improve repository instructions for coding agents and agent CLIs, including AGENTS.md, CLAUDE.md, GEMINI.md, cursor rules, Antigravity rules, GitHub Copilot instructions, or shared development rules for tools such as Codex CLI, Antigravity CLI, GitHub Copilot, Cursor, Gemini, or Claude. Japanese triggers include "AGENTS.mdを作って", "エージェント向けのルールを書いて", "複数のコーディングAIで共通利用できる指示にして", "Codex CLI / Antigravity CLI / GitHub Copilotで使える開発ルールを作る", and requests to turn README/scripts/project conventions into durable agent guidance. Use even when the user does not name AGENTS.md but wants repo-specific operating instructions for future coding AIs. Do not use for one-off code explanations, ordinary README edits, or task-specific implementation plans that should not become persistent agent instructions.
+version: "1.0.0"
+description: Create, audit, or consolidate repository AGENTS.md instructions for AI coding agents. Triggers: "AGENTS.mdを作って", "AIエージェント用の指示を整備して".
+metadata:
+  author: "agent-skills-installer"
+  tags:
+    - agents-md
+    - documentation
+    - coding-agents
+    - repository-rules
 ---
 
 # AGENTS.md Writer
 
-Use this skill to create practical repository instructions for coding agents. The goal is to leave future agents with enough context to work safely and idiomatically without turning the file into a generic policy dump.
+## Purpose
 
-## When To Use
+Create practical, grounded, and agent-agnostic repository instructions (`AGENTS.md`) for AI coding agents. Leave future agents with enough context to work safely and idiomatically across any tool without turning the file into a vendor-locked config or a generic policy dump.
 
-Use this skill when the user wants project-specific instructions for coding AI, including:
+## Prerequisites
 
-- Creating a new `AGENTS.md`.
-- Updating or reviewing an existing `AGENTS.md`.
-- Creating adjacent agent instruction files such as `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.github/copilot-instructions.md`, Antigravity rules, or local IDE/CLI agent rules.
-- Converting tool-specific instructions into shared, agent-neutral guidance that can be reused by Codex CLI, Antigravity CLI, GitHub Copilot, Cursor, Gemini, Claude, and similar coding agents.
-- Turning scattered README, docs, scripts, or user preferences into durable coding-agent guidance.
-- Adding workspace conventions for build, test, lint, formatting, code style, architecture, release, security, or review behavior.
+- Read access to the target repository root (e.g., `README.md`, build/test/lint configs, CI workflows, and directory layout).
+- Write permission in the repository when creating or updating `AGENTS.md`.
+
+## When to Use
+
+Use this skill when the user wants project-specific instructions for coding AIs, including:
+
+- Creating a new `AGENTS.md` (the open standard for AI coding agents).
+- Updating, reviewing, or auditing an existing `AGENTS.md`.
+- Migrating or aligning agent-specific files (such as `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.cursor/rules/`, or `.github/copilot-instructions.md`) into a unified, tool-neutral `AGENTS.md`.
+- Turning scattered README, docs, CI workflows, scripts, or user preferences into durable coding-agent guidance.
+- Adding workspace conventions for setup, build, test, lint, formatting, architecture boundaries, code review, security, or escalation rules.
 
 For one-off implementation guidance that should not be saved in the repo, answer normally instead of creating an agent instruction file.
 
 ## Core Principles
 
-Write instructions that are specific, observable, and useful during real code changes.
-
-Good agent instructions answer questions like:
-
-- How do I set up, build, test, lint, and run this project?
-- Which directories, generated files, or vendored files should I avoid editing?
-- What local architecture or ownership boundaries matter?
-- What style, formatting, naming, and testing conventions are not obvious from tooling alone?
-- What safety constraints should an agent respect before changing code, data, secrets, or infrastructure?
-- What should the agent do when context is missing or validation cannot run?
-
-Avoid generic reminders that every coding agent already knows, such as "write clean code" or "be careful." Replace them with project-specific rules and commands.
+- **Agent-agnostic by default**: Write `AGENTS.md` as a portable, tool-neutral specification that works across any coding agent. Avoid embedding vendor-specific CLI commands, proprietary frontmatter, tool-specific slash commands, or agent-specific config paths (such as `.codex/`, `.claude/`, `.gemini/`, or `.cursor/`) inside `AGENTS.md` unless the user explicitly asks to target a specific tool.
+- **Specific and observable**: Write rules that help during real code changes. Replace generic reminders ("write clean code", "be careful") with exact project commands, file paths, package names, and concrete examples.
+- **Grounded in repository evidence**: Derive every command and path from actual repo files (`package.json`, `Makefile`, `pyproject.toml`, `.github/workflows/`, etc.). Never invent commands or guess conventions; record unknowns explicitly if needed.
+- **Concise and within context budgets**: Keep files compact (around 40-120 lines and well under 32 KiB) so any coding agent can read the entire instruction chain without truncation or context bloat.
+- **Living documentation, not a task dump**: Keep persistent repository norms in `AGENTS.md`, and keep transient implementation plans in issues, PRs, or chat.
 
 ## Workflow
 
-1. Identify the repository root.
-   - Prefer the current working directory when it contains `.git`.
-   - If the user names a specific path, use that path.
-   - If multiple project roots are plausible, inspect enough context to choose the active one and state the assumption briefly.
+1. **Identify the repository root**
+   - Prefer the current working directory when it contains `.git`, or use the path specified by the user.
+   - If multiple project roots exist, inspect enough context to pick the active one and state the assumption briefly.
 
-2. Check for existing instruction files.
-   - Look for `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.cursor/rules/`, `.github/copilot-instructions.md`, and similar files.
-   - If an instruction file already exists, preserve useful project-specific content and improve it rather than replacing it wholesale.
-   - If multiple files exist, keep their scopes clear. Do not duplicate large blocks across files unless the user asks.
-   - When consolidating tool-specific files, keep only guidance that is useful beyond one product or clearly label any remaining tool-specific exception.
+2. **Check for existing instruction files across the hierarchy**
+   - Inspect the root and relevant subdirectories (such as `packages/*` or `services/*`) for `AGENTS.md`, `AGENTS.override.md`, `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.cursor/rules/`, and `.github/copilot-instructions.md`.
+   - Preserve useful project-specific guidance when updating existing files instead of replacing them wholesale.
+   - When consolidating tool-specific files into `AGENTS.md`, strip out vendor-specific directives and keep universal repository rules.
 
-3. Investigate the project before writing.
-   - Read the main README, package/build config, test config, formatter/linter config, contribution docs, and relevant scripts.
-   - Use structural code tools when available for architecture, module boundaries, and call relationships.
-   - Inspect enough source layout to understand the project, but keep the investigation proportionate to the requested file.
+3. **Investigate the repository before writing**
+   - Read the main `README.md`, package/build configs, test/lint/formatter configs, CI workflows, contribution guides, and helper scripts.
+   - Inspect the directory layout to understand module and ownership boundaries.
 
-4. Decide the target file and scope.
-   - Default to `{repo_root}/AGENTS.md` for broad repository instructions.
-   - For monorepos, either create a root `AGENTS.md` with per-package notes or update the most specific existing instruction file.
-   - Respect user-specified file names and locations.
+4. **Decide target file(s) and scope**
+   - Default to `{repo_root}/AGENTS.md` as the single, agent-agnostic source of truth.
+   - For large monorepos, place shared norms in `{repo_root}/AGENTS.md` and package-specific rules in nested `{package}/AGENTS.md` (since agents traverse from root down and prioritize the file nearest the edited path).
+   - If the user wants compatibility with tools that look for other filenames, suggest lightweight bridges (such as symlinks or thin pointer files) separately rather than duplicating rules or polluting `AGENTS.md` with tool-specific syntax.
 
-5. Draft from the template.
-   - Read `references/agents-template.md` from this skill directory.
-   - Keep the template's intent, but omit sections that are not useful for the repository.
-   - Use the user's language by default. If the user writes Japanese, write the final instruction file in Japanese while preserving commands, paths, package names, APIs, and quoted identifiers in their original spelling.
+5. **Draft from the reference template**
+   - Read `references/agents-template.md` in this skill directory as a structural starting point, omitting sections that do not apply to the repository.
+   - Write in the user's language by default (e.g., Japanese when prompted in Japanese) while keeping commands, paths, package names, APIs, and identifiers in their original spelling.
 
-6. Write or update the instruction file.
-   - Keep it concise enough that future agents will actually read it.
-   - Prefer bullets with concrete commands, paths, and examples.
-   - Include validation commands exactly as they should be run.
-   - Call out generated artifacts, lockfiles, migrations, snapshots, schemas, or vendored code that require special care.
-   - Include escalation points: when to ask the user before destructive changes, broad refactors, dependency upgrades, schema changes, secrets, credentials, or networked operations.
+6. **Write or update the instruction file**
+   - Prioritize sections in this order:
+     1. Project overview and source/package layout
+     2. Setup, build, test, lint, and format commands
+     3. Coding conventions and architecture boundaries
+     4. Testing expectations and validation workflow
+     5. Protected files, secrets, and escalation boundaries
+     6. PR and code review conventions (written in tool-neutral terms)
+   - Call out auto-generated code (e.g., `src/generated/`), lockfiles, migrations, snapshots, and vendored code that should not be edited manually.
+   - Define clear escalation points: when an agent must ask before destructive actions, schema migrations, dependency upgrades, credential handling, or external network operations.
 
-7. Validate the result.
-   - Check that every command, path, and file name mentioned is grounded in the repository or clearly marked as a user preference.
-   - Remove stale or speculative guidance.
-   - If validation commands could not be run, say so in the final response.
+7. **Validate and verify**
+   - Confirm every command, path, and package name exists in the repository or is clearly labeled as a user preference.
+   - Audit the draft to verify there is no vendor-specific jargon, tool-specific CLI flags, or proprietary config assumptions.
+   - Remove stale or speculative rules, and ensure no secrets or machine-specific paths are included.
+   - Note how the user can verify loading (for example, asking their coding agent in the target directory to summarize active repository instructions) and state clearly if any validation commands could not be run.
 
-8. Summarize for the user.
-   - Mention the file path created or changed.
-   - Highlight the most important project-specific rules captured.
-   - Note any open questions or validation limits.
+8. **Summarize for the user**
+   - List created or updated file paths.
+   - Highlight the key project-specific rules captured.
+   - Note any unresolved questions, conflicts resolved, or validation limits.
 
-## Content Guidance
+## Quality Bar & Updating Rules
 
-Prioritize sections in this order:
+- Read the entire existing file before editing it.
+- Preserve working headings and local conventions; remove obsolete items only when contradicted by repository evidence.
+- When instructions conflict across levels, keep the more specific/local rule and mention the conflict in the summary.
+- Never include API keys, tokens, credentials, or private local paths unless explicitly requested for local-only guidance.
 
-1. Project overview and source layout.
-2. Build, test, lint, format, and development commands.
-3. Coding conventions and architecture boundaries.
-4. Testing expectations and validation strategy.
-5. Files or operations requiring caution.
-6. Agent workflow expectations.
+## Examples
 
-Use subdirectory-specific notes when they prevent mistakes. For example, mention that `src/generated/` is regenerated from schemas, or that package `apps/web` owns UI routes while `packages/api` owns service clients.
+### Creating a new `AGENTS.md`
 
-When the repo has no obvious commands or docs, write what is known and add a short "Unknowns" or "Ask Before Assuming" section instead of inventing commands.
+Prompt:
+```text
+このリポジトリの package.json と CI ワークフローを読んで、AI コーディングエージェント向けの AGENTS.md を作って。
+```
 
-## Quality Bar
+Resulting `AGENTS.md` structure:
+```markdown
+# Project Overview
+TypeScript monorepo managed with pnpm.
 
-- Ground every rule in observed repository evidence, existing docs, or explicit user direction.
-- Make instructions actionable: use exact paths, command names, and decision points.
-- Keep the tone direct and calm. Future agents should feel guided, not scolded.
-- Preserve user-owned content and local conventions.
-- Do not include secrets, private tokens, hidden credentials, or machine-specific paths unless the user explicitly wants local-only instructions.
-- Do not use AGENTS.md as a dumping ground for implementation plans. Keep task-specific plans in planning docs, issues, or the conversation.
+## Setup & Verification
+- Install: `pnpm install`
+- Test: `pnpm test`
+- Lint: `pnpm lint`
 
-## Updating Existing Files
+## Boundaries & Escalation
+- Do not edit generated files under `src/generated/`.
+- Ask before modifying database migrations or adding dependencies.
+```
 
-When editing an existing instruction file:
+## Limitations
 
-- Read the whole file first.
-- Preserve headings and conventions that are already working.
-- Remove obsolete guidance only when repository evidence clearly contradicts it.
-- Prefer focused improvements over a full rewrite unless the existing file is mostly generic, stale, or the user asks for a rewrite.
-- If two instructions conflict, keep the more specific/local one and note the conflict in the final response.
+- Cannot verify commands or scripts that require unavailable local runtimes, private registries, or CI-only credentials; unverified commands must be marked as such.
+- Produces tool-neutral `AGENTS.md` files by default; vendor-specific features (such as proprietary frontmatter or slash-command configs) are omitted unless explicitly requested.
+- Does not replace human-facing onboarding documentation in `README.md`.
 
-## Template
+## Troubleshooting
 
-Use `references/agents-template.md` as a starting point, not a rigid schema. The best `AGENTS.md` for a small library may be 40 lines; a monorepo may need more structure.
+| Symptom | Cause | Solution |
+| --- | --- | --- |
+| Existing `CLAUDE.md` / `.cursorrules` and `AGENTS.md` conflict | Multiple tool-specific instruction files accumulated over time | Consolidate universal rules into `AGENTS.md`, keep the more specific/local rule on conflicts, and note resolved conflicts in the summary |
+| Generated `AGENTS.md` exceeds ~120 lines or 32 KiB | Entire `README.md` or verbose prose was copied into the file | Trim to actionable commands, boundaries, and file paths; move deep reference material to `docs/` |
+| Build or test commands in the draft are speculative | Repository manifests (`package.json`, `Makefile`, `pyproject.toml`) were not checked | Inspect actual repo configs and CI workflows first, and label any unverified command as unverified |

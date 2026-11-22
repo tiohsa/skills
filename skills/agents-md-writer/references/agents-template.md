@@ -1,46 +1,47 @@
-# AGENTS.md Template
+# AGENTS.md Reference Template
 
-# Repository Guidelines
+Use this template as a flexible, agent-agnostic starting point. Omit sections that are irrelevant to the repository, avoid tool-specific directives, and keep total length concise (around 40-120 lines for standard repositories) so combined instruction files stay well below agent context limits.
 
-## Project Structure
+```markdown
+# AGENTS.md
 
-- `path/`: describe what lives here and who should edit it.
-- `path/`: describe generated, vendored, or high-risk areas.
+## Project Overview
+- **Purpose**: <1-2 sentence summary of what this repository does>
+- **Architecture / Layout**:
+  - `<dir-or-package-1>/`: <responsibility and ownership boundary>
+  - `<dir-or-package-2>/`: <responsibility and ownership boundary>
 
-## Build, Test, And Development Commands
-
-- `command`: explain when to run it.
-- `command`: explain what it validates.
+## Setup & Commands
+- Install dependencies: `<exact install command>`
+- Start dev server: `<exact dev command>`
+- Build: `<exact build command>`
+- Run all tests: `<exact test command>`
+- Run single test: `<exact targeted test command>`
+- Lint & format: `<exact lint/format commands>`
 
 ## Coding Conventions
+- <Language/compiler settings, e.g., TypeScript strict mode, Python type hints>
+- <Style/naming rules not already enforced by linters>
+- <Preferred architectural patterns or error-handling conventions>
 
-- Describe formatting, naming, typing, module, or API conventions that are specific to this repository.
-- Mention existing helpers, patterns, or abstractions agents should reuse before adding new ones.
+## Testing & Validation
+- <Expectations for adding/updating tests alongside code changes>
+- <Required checks to run and pass before finishing a task or opening a PR>
 
-## Testing Guidance
+## Protected Files & Safety Boundaries
+- **Do not edit manually**: `<generated paths, e.g., src/generated/, lockfiles, vendor/>`
+- **Ask before acting**:
+  - Destructive file or git operations
+  - Database schema changes or migrations
+  - Adding or upgrading production dependencies
+  - Modifying auth, secrets, or deployment configs (never commit secrets or tokens)
 
-- Explain where tests live and how to run focused vs full validation.
-- Mention required fixtures, snapshots, golden files, database setup, or environment variables.
-- Say what to do when tests cannot run locally.
+## PR & Review Guidelines
+- **Commit / PR format**: `<convention if used in repo>`
+- **Review focus**:
+  - <Domain-specific invariants or edge cases to check before merging>
+  - <Explicit exceptions / safe paths where the check does not apply>
 
-## Architecture Notes
-
-- Describe important module boundaries, data flow, ownership, or integration points.
-- Call out generated code, schemas, migrations, public APIs, or compatibility contracts.
-
-## Agent Workflow
-
-- Read relevant files before editing and preserve unrelated user changes.
-- Keep changes scoped to the requested task.
-- Update docs, tests, snapshots, or schemas when behavior changes.
-- Report validation commands run and any checks that could not be completed.
-
-## Safety And Permissions
-
-- Ask before destructive operations, broad rewrites, dependency upgrades, database migrations, secret handling, or networked deployment steps.
-- Do not commit secrets or machine-local configuration.
-- Avoid editing generated or vendored files unless the generation source is updated too.
-
-## Unknowns
-
-- List project-specific questions that future agents should ask before assuming.
+## Unknowns / Ask Before Assuming
+- <Only include if critical commands or conventions could not be verified from the repo>
+```

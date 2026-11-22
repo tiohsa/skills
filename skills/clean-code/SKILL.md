@@ -1,11 +1,26 @@
 ---
 name: clean-code
-description: Improve code readability, maintainability, naming, duplication, control flow, function design, comments, and object-oriented or functional structure using clean code principles such as KISS, YAGNI, DRY, SOLID, and intent-revealing design. Use when asked to refactor, clean up, simplify, remove duplication, improve readability, improve naming, reduce nesting, extract functions, reduce magic values, review code quality, or make code easier to test and maintain. Do not use for infrastructure setup, dependency installation, deployment configuration, or purely visual styling unless the request also involves code structure or maintainability.
+version: "1.0.0"
+description: Improve code readability, naming, duplication, and structure using KISS, YAGNI, DRY, and SOLID. Use when refactoring, simplifying, or reviewing code quality.
+metadata:
+  author: "agent-skills-installer"
+  tags:
+    - clean-code
+    - refactoring
+    - code-quality
+    - maintainability
 ---
 
 # Clean Code
 
-Use this skill to make code easier to understand, safer to change, and cheaper to maintain without unnecessary behavior changes.
+## Purpose
+
+Make code easier to understand, safer to change, and cheaper to maintain without unnecessary behavior changes. Do not use for infrastructure setup, dependency installation, deployment configuration, or purely visual styling unless code structure is involved.
+
+## Prerequisites
+
+- Read access to the target source files and surrounding callers.
+- Project test, type-check, or lint commands when available for verifying behavior preservation.
 
 ## Core Workflow
 
@@ -53,3 +68,32 @@ Report concisely:
 - The main files or code areas changed.
 - What validation was run.
 - Any behavior risk, compatibility concern, or unverified area.
+
+## Example
+
+```python
+# Before: deep nesting and vague naming
+def proc(d):
+    if d is not None:
+        if d.get("active"):
+            return d["val"] * 1.1
+    return 0
+
+# After: early return and domain-revealing names
+def calculate_active_total(account: dict | None) -> float:
+    if account is None or not account.get("active"):
+        return 0.0
+    return account["val"] * 1.1
+```
+
+## Limitations
+
+- Guide-only skill: does not prescribe language-specific formatter or linter configs; defer to the repository's existing rules.
+- Does not authorize breaking public APIs or changing observable behavior unless explicitly requested.
+
+## Troubleshooting
+
+| Symptom | Cause | Solution |
+| :--- | :--- | :--- |
+| Refactoring breaks callers | Implicit side effects or shared mutable state changed | Revert to the last passing state, add focused unit tests, and refactor in smaller steps |
+| Abstraction feels forced | Merging code that only looks similar superficially | Keep separate domain concepts independent until a true shared rule emerges |

@@ -1,11 +1,26 @@
 ---
 name: refactoring
-description: Guides code improvements based on Martin Fowler's Refactoring. Supports code smell detection, applying refactoring techniques, and incremental code improvement. Use for code refactoring, code improvement, and legacy code work.
+version: "1.0.0"
+description: Guide incremental code refactoring and code smell removal without changing behavior. Use for code improvement and legacy code work.
+metadata:
+  author: "agent-skills-installer"
+  tags:
+    - refactoring
+    - code-smells
+    - legacy-code
+    - maintainability
 ---
 
 # Refactoring
 
-Techniques for improving internal structure without changing externally visible behavior.
+## Purpose
+
+Provide techniques for improving internal code structure without changing externally visible behavior, based on Martin Fowler's Refactoring.
+
+## Prerequisites
+
+- Read access to the target code and its callers.
+- An automated test suite or reproducible input/output checks to verify behavior preservation.
 
 ## Refactoring Principles
 
@@ -229,7 +244,7 @@ Apply only one refactoring.
 <project-test-command>
 ```
 
-Compare representative boundary cases before and after the change, especially empty collections, default branches, rounding, ordering, whitespace, and serialized output.
+Compare representative boundary cases before and after the change, especially empty collections, default branches, rounding, ordering, whitespace, and serialized output. If any test or validation fails, revert the last step immediately and isolate the cause before continuing.
 
 ### 4. Commit Only When Requested
 
@@ -246,3 +261,15 @@ Do not commit automatically. If the user asked for a commit, make one focused co
 - **Moving Features**: [moving-features.md](references/moving-features.md)
 - **Organizing Data**: [organizing-data.md](references/organizing-data.md)
 - **Simplifying Conditionals**: [simplifying-conditionals.md](references/simplifying-conditionals.md)
+
+## Limitations
+
+- Guide-only skill: does not replace language-specific static analyzers or compiler checks.
+- Safe refactoring depends on test coverage; without tests, only small, easily verifiable structural steps should be attempted.
+
+## Troubleshooting
+
+| Error / Symptom | Cause | Solution |
+| :--- | :--- | :--- |
+| Tests fail after a step | Behavior changed unintentionally or hidden dependency broke | Revert the step, inspect boundary inputs/side effects, and re-apply in smaller increments |
+| No existing tests | Legacy module lacks test harness | Add narrow characterization tests capturing current inputs/outputs before editing |

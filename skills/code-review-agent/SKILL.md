@@ -1,6 +1,6 @@
 ---
 name: code-review-agent
-description: Review software code changes for bugs, regressions, architecture inconsistencies, security risks, performance and reliability issues, maintainability problems, and missing tests. Use when Codex is asked to review, audit, assess merge readiness, spot bugs, or check the safety of a pull request, branch, commit, diff, patch, staged changes, working-tree changes, file, endpoint, or proposed implementation and should report prioritized, actionable findings rather than implement fixes.
+description: Review software code changes for bugs, regressions, architecture inconsistencies, security risks, performance and reliability issues, maintainability problems, and missing tests, then save the review report as Markdown under docs/review/. Use when Codex is asked to review, audit, assess merge readiness, spot bugs, or check the safety of a pull request, branch, commit, diff, patch, staged changes, working-tree changes, file, endpoint, or proposed implementation and should report prioritized, actionable findings rather than implement fixes.
 ---
 
 # Code Review Agent
@@ -21,7 +21,8 @@ Review software changes against the repository's established behavior and conven
    - Maintainability
    - Test coverage and test quality
 6. Validate each finding against the changed lines and nearby implementation. Report only problems introduced by the change or pre-existing problems that the change makes reachable or materially worse. Do not report speculative concerns without a realistic failure mode.
-7. Return findings first, ordered by severity, with file and line references. Then list open questions, a short change summary, and verification limits.
+7. Write the review report as Markdown under `<project_root>/docs/review/`. Follow the output artifact rules below.
+8. Return findings first, ordered by severity, with file and line references. Then list open questions, a short change summary, verification limits, and the saved report path.
 
 Do not modify code unless the user explicitly asks for fixes.
 
@@ -36,6 +37,15 @@ Do not modify code unless the user explicitly asks for fixes.
 - If no findings remain after review, say so clearly and state residual risks or unrun checks.
 
 Read [review-heuristics.md](references/review-heuristics.md) for severity definitions and detailed review prompts.
+
+## Output Artifact
+
+- Create `<project_root>/docs/review/` when it does not exist.
+- Save every completed review as `<project_root>/docs/review/YYYY-MM-DD-<scope>-code-review.md`.
+- Derive `<scope>` from the reviewed artifact, such as a branch name, pull request number, commit hash, or `working-tree`. Normalize it to lowercase hyphen-case. Append `-2`, `-3`, and so on before `.md` when the filename already exists.
+- Use the requested output path instead when the user explicitly provides one.
+- Include the review scope, findings ordered by severity, open questions, change summary, and verification limits. Keep the no-findings case explicit.
+- Treat the Markdown file as the durable review result. Keep the chat response concise and include the saved file path.
 
 ## Conditional References
 
