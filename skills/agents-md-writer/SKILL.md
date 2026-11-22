@@ -1,6 +1,6 @@
 ---
 name: agents-md-writer
-description: Create, audit, or consolidate repository AGENTS.md instructions for AI coding agents. Triggers: "AGENTS.mdを作って", "AIエージェント用の指示を整備して".
+description: Create, audit, or consolidate repository AGENTS.md instructions for AI coding agents.
 ---
 
 # AGENTS.md Writer
