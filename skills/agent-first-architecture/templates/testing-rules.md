@@ -1,15 +1,16 @@
 ---
-title: Prevent AI Coding Agent Test Anti-Patterns
+title: Prevent AI Coding Agent Test Anti-Patterns & Enforce Test Isolation
 impact: CRITICAL
 tags:
   - testing
   - quality
+  - isolation
   - anti-patterns
 ---
 
-# Prevent AI Coding Agent Test Anti-Patterns
+# Prevent AI Coding Agent Test Anti-Patterns & Enforce Test Isolation
 
-Tests must verify observable behavior against `SPEC.md` contracts rather than mirroring implementation details or relying on hollow assertions and excessive mocks. Static test linters enforce these constraints in CI.
+Tests must verify observable behavior against `SPEC.md` contracts rather than mirroring implementation details or relying on hollow assertions and excessive mocks. Tests must also run safely in parallel without mutating shared state or triggering external paid services. Static test linters and `tests/support/` enforce these constraints in CI.
 
 ## 1. No Tautological Tests or Private Internal Imports
 
@@ -57,13 +58,14 @@ test("rejects reservation when available inventory is insufficient", async () =>
 });
 ```
 
-## 3. No Hollow Assertions (`toBeDefined` / Bare `toThrow`)
+## 3. No Hollow Assertions (`toBeDefined` / Bare `toThrow` / Conditional Skips)
 
-Always assert concrete domain values, state transitions, and specific error classes or messages.
+Always assert concrete domain values, state transitions, and specific error classes or messages. Never silently return/skip when environment variables are missing.
 
 **Incorrect:**
 ```ts
 test("creates user", async () => {
+  if (!process.env.API_KEY) return; // silent pass!
   const res = await createUser({ email: "user@example.com" });
   expect(res).toBeDefined();
   await expect(createUser({ email: "" })).rejects.toThrow();
@@ -79,8 +81,30 @@ test("creates active user and rejects blank email with ValidationError", async (
 });
 ```
 
-## 4. Cover Boundary & Failure Cases (Not Only Happy Paths)
+## 4. Test Both Sides of Every Boundary (Not Only Happy Paths)
 
-Every feature test suite must include edge cases defined in `SPEC.md` (empty collections, zero/negative boundaries, unauthorized access, timezone/month-end edges) in small, single-purpose test blocks.
+Bugs cluster at threshold edges. Always pair both sides of numeric, date, and permission boundaries (e.g., `50` vs. `51`, empty collections, unauthorized roles) in small, single-purpose test blocks.
 
-Reference: `src/application/_reference-example/`
+**Incorrect:**
+```ts
+test("applies standard tier fee", () => {
+  expect(resolveIssueFee(feeTable, 25)).toBe(2000); // middle value misses boundary bugs
+});
+```
+
+**Correct:**
+```ts
+test("applies base fee up to 50 items and overage fee at 51 items", () => {
+  expect(resolveIssueFee(feeTable, 49)).toBe(2000);
+  expect(resolveIssueFee(feeTable, 50)).toBe(2000);
+  expect(resolveIssueFee(feeTable, 51)).toBe(5000);
+});
+```
+
+## 5. Parallel Isolation & External Billing/Messaging Isolation
+
+- **Parallel Safety (`tests/support/`):** Never mutate shared seed records in write tests. Generate isolated per-test namespaces (`createTestRun`), register cleanup immediately upon record creation (`cleanup.defer`), and enforce the deployed-DB connection guard (`assertSafeTestDatabase`).
+- **E2E Determinism:** Prefer role/label/`data-testid` locators and auto-retrying assertions over arbitrary `waitForTimeout` sleeps.
+- **Isolate Paid / External Side-Effect Tests:** Keep tests that invoke real payment gateways, SMS/email delivery, or metered third-party APIs out of the default `test` / `verify:all` commands by placing them in a dedicated config and script (e.g., `npm run test:external:payment`).
+
+Reference: `src/application/_reference-example/` and `tests/support/`

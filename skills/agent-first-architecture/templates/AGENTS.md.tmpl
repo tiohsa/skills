@@ -10,26 +10,33 @@ Repository operating instructions for AI coding agents and developers. Keep this
   - `src/domain/`: Pure business entities, value objects, and port interfaces (zero external imports).
   - `src/application/<feature>/`: Use cases. Cross-feature imports must go through `index.*` only; importing `<other>/internal/*` is forbidden.
   - `src/adapters/`: Inbound handlers (`inbound/`) and outbound repository/API implementations (`outbound/`).
-  - `src/infrastructure/` (or `core/`): Frameworks, DB drivers, DI wiring, and wrapped low-level APIs.
+  - `src/infrastructure/` (or `core/`): Frameworks, DB drivers, DI wiring, centralized logging (`logging/`), and wrapped low-level APIs.
   - `contracts/`: Shared schemas and DTOs across runtime boundaries.
+  - `tests/`: Unit tests (`unit/`), E2E tests (`e2e/`), and parallel isolation harness (`support/`).
   - `verification/`: `feature-map.json` and single-command verification runner.
 - **Golden Reference:** Before creating a new feature or test, inspect `<path-to-reference-example>` and follow its exact structure—do not copy legacy patterns.
 
-## 2. Standard Development & Testing Workflow
+## 2. Irreversible-Domain Safety Rules
+
+- **Logging & Secrets (`agents/rules/logging-and-secrets.md`):** Never call raw `console.log`/`print` in product code; use the centralized structured logger (`infrastructure/logging/` or `core/logging/`). Never log tokens, passwords, API keys, or raw PII, and never read `.env*` files.
+- **Database Migrations (`agents/rules/database-migrations.md`):** Never edit applied migration files. All staging/production schema changes must be forward-only (no rollbacks). Verify existing rows before adding `UNIQUE`/`NOT NULL` constraints.
+
+## 3. Standard Development & Testing Workflow
 
 1. **Freeze Specification First (`SPEC.md`):** For any non-trivial feature or bug fix, ensure `SPEC.md` (Goal, Non-goals, Acceptance Criteria, Boundary Cases, Required Tests) is defined and frozen before editing code.
 2. **Implement Within Boundaries:** Keep feature changes colocated inside a single feature directory. Do not bypass type checks or linters with suppression directives (`eslint-disable`, `@ts-ignore`, `# rubocop:disable`, `#[allow(...)]`).
-3. **Write Behavior-Driven Tests (`agents/rules/testing-anti-patterns.md`):**
+3. **Write Behavior-Driven, Isolated Tests (`agents/rules/testing-anti-patterns.md`):**
    - Test public contracts (`index.*` / inbound adapters), never `internal/*` implementation details.
    - Avoid mocking internal domain/application modules; mock only external I/O boundaries.
    - Assert concrete outputs, state transitions, and specific error types/messages (no bare `toBeDefined()` or bare `toThrow()`).
-   - Cover `SPEC.md` boundary/edge cases (empty inputs, permissions, date/numeric edges), not just happy paths, and keep each test focused.
+   - Cover both sides of every threshold/boundary in `SPEC.md` (e.g., `N-1`, `N`, `N+1`), not just happy paths.
+   - Use `tests/support/` (per-run namespaces, create-with-cleanup factories, deployed-DB guard) for parallel test isolation, and keep paid/external tests isolated under `test:external:*`.
 4. **Update Verification Map & Run Single Gate:** Register user-facing routes/commands/selectors in `verification/feature-map.json`, then run:
    ```bash
    <SINGLE_VERIFY_COMMAND>
    ```
 
-## 3. Continuous Hardening (Three-Strike Rule)
+## 4. Continuous Hardening (Three-Strike Rule)
 
 - If a code review or verification failure repeats the same mistake **2 or more times**, promote the rule into a static lint check, test lint rule, or safe wrapper in `infrastructure/` / `core/`.
-- Never modify linter configs, dependency rules, `agents/rules/`, or `verification/` harnesses to weaken checks without explicit human approval.
+- Never modify linter configs, dependency rules, `agents/rules/`, `tests/support/guard.*`, or `verification/` harnesses to weaken checks without explicit human approval.

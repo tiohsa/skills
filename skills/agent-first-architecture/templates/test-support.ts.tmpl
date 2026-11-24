@@ -1,0 +1,78 @@
+/**
+ * Parallel Test Isolation Harness (tests/support/)
+ *
+ * Provides three framework-agnostic primitives so concurrent test workers never
+ * collide on shared records, leave orphaned rows behind, or accidentally hit
+ * a deployed staging/production database:
+ *   1. createTestRun()        - Unique per-worker/per-test namespace prefix
+ *   2. CleanupRegistry        - LIFO deferred cleanup registered on creation
+ *   3. assertSafeTestDatabase() - Fail-fast guard blocking production/preview DBs
+ */
+
+export interface TestRunNamespace {
+  readonly prefix: string;
+  email: (label: string) => string;
+  slug: (label: string) => string;
+}
+
+export function createTestRun(workerId: string, testId: string): TestRunNamespace {
+  const sanitized = `${workerId}-${testId}`.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const prefix = `t-${sanitized}`;
+
+  return {
+    prefix,
+    email: (label: string) => `${prefix}-${label}@example.invalid`,
+    slug: (label: string) => `${prefix}-${label}`,
+  };
+}
+
+export class CleanupRegistry {
+  private readonly tasks: Array<() => Promise<void> | void> = [];
+
+  defer(cleanupFn: () => Promise<void> | void): void {
+    this.tasks.push(cleanupFn);
+  }
+
+  async flush(): Promise<void> {
+    const errors: unknown[] = [];
+    // Execute in reverse (LIFO) order to respect foreign-key dependencies
+    while (this.tasks.length > 0) {
+      const fn = this.tasks.pop();
+      if (!fn) continue;
+      try {
+        await fn();
+      } catch (err) {
+        errors.push(err);
+      }
+    }
+    if (errors.length > 0) {
+      throw new AggregateError(errors, "One or more test cleanup tasks failed");
+    }
+  }
+}
+
+export function assertSafeTestDatabase(env: Record<string, string | undefined> = process.env): void {
+  const blockedTargets = new Set(["production", "prod", "preview", "staging"]);
+  const deployEnv = (env.VERCEL_ENV || env.APP_ENV || env.DEPLOY_ENV || "").toLowerCase();
+
+  if (blockedTargets.has(deployEnv)) {
+    throw new Error(
+      `Refusing to run integration tests against protected environment: "${deployEnv}". Point DATABASE_URL to an isolated local/test database.`
+    );
+  }
+}
+
+/**
+ * Example factory pairing creation with immediate cleanup registration:
+ *
+ * export async function createTestOrg(
+ *   db: DbClient,
+ *   run: TestRunNamespace,
+ *   cleanup: CleanupRegistry
+ * ) {
+ *   assertSafeTestDatabase();
+ *   const org = await db.insertOrg({ name: run.slug("org") });
+ *   cleanup.defer(() => db.deleteOrg(org.id));
+ *   return org;
+ * }
+ */
